@@ -56,16 +56,15 @@ Options:
   --root=<prefix>       Overrides root directory (for debuging) 
 """
 
-import sys
+import sys, os
 from os.path import realpath, dirname, join, exists
 
 # Get root directory
 job_root_path = dirname(realpath(__file__))
 job_root_path = dirname(job_root_path)
-local_docopt_path     = join(job_root_path, "docopt")
-local_schematics_path = join(job_root_path, "schematics")
 sys.path = [job_root_path] + sys.path
-sys.path += [local_docopt_path, local_schematics_path]
+sys.path += [join(job_root_path, "external/docopt")]
+sys.path += [join(job_root_path, "external/schematics")]
 
 
 # Make sure we can import main module
