@@ -213,7 +213,7 @@ class LocalDeviceShell(DeviceDriver, PluginManager):
             command += ["mkdir", "-p", path]
             out, err = Popen(command, shell=False, stdout=PIPE, stderr=PIPE).communicate()
             if not err:
-                self.logger.info("Making %s", path)
+                self.logger.debug("Making %s", path)
                 return True
             else:
                 print err
@@ -241,10 +241,10 @@ class LocalDeviceShell(DeviceDriver, PluginManager):
             if sudo:
                 command += ["sudo"]
 
-            command += ["cp", "-r", source, target]
+            command += ["cp", "-p", source, target]
             out, err = Popen(command, shell=False, stdout=PIPE, stderr=PIPE).communicate()
             if not err:
-                self.logger.info("Copying %s to %s", source, target)
+                self.logger.debug("Copying %s to %s", source, target)
                 return True
             else:
                 self.logger.exception(err)
@@ -271,7 +271,7 @@ class LocalDeviceShell(DeviceDriver, PluginManager):
             command += ["ln", "-s", path, link_path]
             out, err = Popen(command, shell=False, stdout=PIPE, stderr=PIPE).communicate()
             if not err:
-                self.logger.info("Making symlink %s %s", path, link_path) 
+                self.logger.debug("Making symlink %s %s", path, link_path) 
                 return True
             else:
                 self.logger.exception(err)
@@ -290,21 +290,21 @@ class LocalDeviceShell(DeviceDriver, PluginManager):
         """
         from subprocess import Popen, PIPE
         command = []
-        try:
-            if sudo:
-                command += ['sudo']
-            command += ["chmod", "uga-w", path]
-            out, err = Popen(command, shell=False, stdout=PIPE, stderr=PIPE).communicate()
-            if not err:
-                return True
-            else:
-                self.logger.exception("Can't remove write permission from %s", path)
-                raise OSError
-        except:
-            self.logger.exception("Can't remove write permission from %s", path)
-            raise OSError
+        # try:
+        #     if sudo:
+        #         command += ['sudo']
+        #     command += ["chmod", "uga-w", path]
+        #     out, err = Popen(command, shell=False, stdout=PIPE, stderr=PIPE).communicate()
+        #     if not err:
+        #         return True
+        #     else:
+        #         self.logger.exception("Can't remove write permission from %s", path)
+        #         raise OSError
+        # except:
+        #     self.logger.exception("Can't remove write permission from %s", path)
+        #     raise OSError
 
-        self.logger.debug("remove_write_permissions: %s (%s)", path, current_permissions & NO_WRITING)
+        # self.logger.debug("remove_write_permissions: %s (%s)", path, current_permissions & NO_WRITING)
 
     def add_write_permissions(self, path, group=True, others=False, sudo=USE_SUDO):
         """ Set permissions flags according to provided params.
@@ -316,8 +316,8 @@ class LocalDeviceShell(DeviceDriver, PluginManager):
         from subprocess import Popen, PIPE
         command = []
 
-        # if not group and not others:
-            # return
+        if not group and not others:
+            return
 
         if sudo:
             command += ['sudo']
@@ -378,7 +378,7 @@ class LocalDeviceShell(DeviceDriver, PluginManager):
         # This may happen due to 'upper' logic...
         if not user and not group: 
             return False
-        # 
+        
         uid = get_user_id(path, user)
         gid = get_group_id(path, group)
         #
@@ -387,7 +387,7 @@ class LocalDeviceShell(DeviceDriver, PluginManager):
             command += ['sudo']
 
         if group:
-            command += ['chgrp -R', group, path]
+            command += ['chgrp ', group, path]
             out, err = Popen(command, shell=False, stdout=PIPE, stderr=PIPE).communicate()
             if err:
                 self.logger.exception("Can't change ownership for %s", path)
@@ -398,7 +398,7 @@ class LocalDeviceShell(DeviceDriver, PluginManager):
             command += ['sudo']
            
         if user:
-            command += ['chown -R', user, path]
+            command += ['chown ', user, path]
             out, err = Popen(command, shell=False, stdout=PIPE, stderr=PIPE).communicate()
             if err:
                 self.logger.exception("Can't change ownership for %s", path)
