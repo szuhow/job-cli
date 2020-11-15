@@ -14,7 +14,7 @@
     "link_root": null, 
     "is_link": false, 
     "link_target": null, 
-    "root": "/PROD/dev", 
+    "root": "/tmp/test", 
     "job_current": "sandbox",
     "asset_id_template": ["@job_current",
                           "@job_asset_type",
