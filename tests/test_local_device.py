@@ -47,22 +47,35 @@ class LocalDeviceShellTest(unittest.TestCase):
         import stat
         source = os.path.join(self.root, 'permissions')
         os.mkdir(source)
+
         self.device.add_write_permissions(source, True, True)
         permissions = os.stat(source)[stat.ST_MODE]
         self.assertTrue(permissions & stat.S_IWGRP)
         self.assertTrue(permissions & stat.S_IWOTH)
+
         self.device.add_write_permissions(source, False, False)
-        os.system("ls -la %s" % self.root)
+        permissions = os.stat(source)[stat.ST_MODE]
         self.assertFalse(permissions & stat.S_IWGRP)
         self.assertFalse(permissions & stat.S_IWOTH)
-        
-        # print mode[S_IWGRP]
-        # self.assertTrue(S_IWOTH(mode))
-        # mode = os.stat(source).st_mode
-        # self.assertFalse(S_IWGRP(mode))
-        # self.assertFalse(S_IWOTH(mode))
+
+        self.device.add_write_permissions(source, True, False)
+        permissions = os.stat(source)[stat.ST_MODE]
+        self.assertTrue(permissions & stat.S_IWGRP)
+        self.assertFalse(permissions & stat.S_IWOTH)
+
+        self.device.add_write_permissions(source, False, False, False)
+        permissions = os.stat(source)[stat.ST_MODE]
+        self.assertFalse(permissions & stat.S_IWUSR)
+        self.assertFalse(permissions & stat.S_IWGRP)
+        self.assertFalse(permissions & stat.S_IWOTH)
 
 
+class LocalDevicePythonTest(LocalDeviceShellTest):
+    def setUp(self):
+        from job.plugin import PluginManager 
+        self.root = tempfile.mkdtemp()
+        from localDeviceDriver import LocalDevicePython
+        self.device = LocalDevicePython()
 
-suite = unittest.TestLoader().loadTestsFromTestCase(LocalDeviceShellTest)
-unittest.TextTestRunner(verbosity=3).run(suite)
+if __name__ == '__main__':
+    unittest.main()
