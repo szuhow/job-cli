@@ -212,15 +212,15 @@ class LocalDeviceShell(DeviceDriver, PluginManager):
 
             command += ["mkdir", "-p", path]
             out, err = Popen(command, shell=False, stdout=PIPE, stderr=PIPE).communicate()
-            if not err:
-                self.logger.debug("Making %s", path)
-                return True
-            else:
-                print err
-                self.logger.exception(str(err))
-                raise OSError
+        #     if not err:
+        #         self.logger.debug("Making %s", path)
+        #         return True
+        #     else:
+        #         print err
+        #         self.logger.exception(str(err))
+        #         raise OSError
         except OSError, e:
-            self.logger.exception("Couldn't make %s",  path)
+            # self.logger.exception("Couldn't make %s",  path)
             raise OSError
 
     def copy_file(self, source, target, sudo=USE_SUDO):
@@ -243,14 +243,14 @@ class LocalDeviceShell(DeviceDriver, PluginManager):
 
             command += ["cp", "-p", source, target]
             out, err = Popen(command, shell=False, stdout=PIPE, stderr=PIPE).communicate()
-            if not err:
-                self.logger.debug("Copying %s to %s", source, target)
-                return True
-            else:
-                self.logger.exception(err)
-                raise IOError
+            # if not err:
+            #     self.logger.debug("Copying %s to %s", source, target)
+            #     return True
+            # else:
+            #     self.logger.exception(err)
+            #     raise IOError
         except IOError, e:
-            self.logger.exception("Couldn't copy %s",  source)
+            # self.logger.exception("Couldn't copy %s",  source)
             raise IOError
 
 
@@ -270,14 +270,14 @@ class LocalDeviceShell(DeviceDriver, PluginManager):
 
             command += ["ln", "-s", path, link_path]
             out, err = Popen(command, shell=False, stdout=PIPE, stderr=PIPE).communicate()
-            if not err:
-                self.logger.debug("Making symlink %s %s", path, link_path) 
-                return True
-            else:
-                self.logger.exception(err)
-                raise OSError
+            # if not err:
+            #     self.logger.debug("Making symlink %s %s", path, link_path) 
+            #     return True
+            # else:
+            #     self.logger.exception(err)
+            #     raise OSError
         except:
-            self.logger.exception("Can't make a link %s %s", path, link_path)
+            # self.logger.exception("Can't make a link %s %s", path, link_path)
             raise OSError
 
 
@@ -316,32 +316,33 @@ class LocalDeviceShell(DeviceDriver, PluginManager):
         from subprocess import Popen, PIPE
         command = []
 
-        if not group and not others:
-            return
-
         if sudo:
             command += ['sudo']
 
         command += ["chmod", '-v']
         permission_str = ""
 
-        if group:
-            permission_str += "g"
-        if others:
-            permission_str += "a"
+        permission_str += "ga"
 
-        permission_str += "+w"
+        if group and others:
+            permission_str += "+w"
+        elif not group and not others:
+            permission_str += "-w"
 
         command += [permission_str]
         command += [path]
 
-        out, error = Popen(command, shell=False, stderr=PIPE, stdout=PIPE).communicate()
+        try:
 
-        if error:
-            self.logger.exception("%s, %s", error, path)
+            out, error = Popen(command, shell=False, stderr=PIPE, stdout=PIPE).communicate()
+        except:
             raise OSError
 
-        self.logger.debug("%s (%s)", " ".join(command),  u'out')
+        # if error:
+        #     self.logger.exception("%s, %s", error, path)
+        #     raise OSError
+
+        # self.logger.debug("%s (%s)", " ".join(command),  u'out')
 
     def set_ownership(self, path, user=None, group=None, sudo=USE_SUDO):
         """ Sets the ownership of a path. 

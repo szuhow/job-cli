@@ -187,7 +187,7 @@ class PluginManager(object):
     def error(self):
         return self.last_error
 
-    @CachedMethod
+    # @CachedMethod
     def get_plugin_by_type(self, type):
         """ Getter for plugins of type.
 
@@ -202,7 +202,7 @@ class PluginManager(object):
                 plg += [plugin]
         return plg
 
-    @CachedMethod
+    # @CachedMethod
     def get_plugin_by_name(self, name):
         """ Getter for plugin by name. Currently first matching name
          is returned, which might not be the best policy ever...
