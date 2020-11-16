@@ -70,12 +70,23 @@ class LocalDeviceShellTest(unittest.TestCase):
         self.assertFalse(permissions & stat.S_IWOTH)
 
 
-class LocalDevicePythonTest(LocalDeviceShellTest):
-    def setUp(self):
-        from job.plugin import PluginManager 
-        self.root = tempfile.mkdtemp()
-        from localDeviceDriver import LocalDevicePython
-        self.device = LocalDevicePython()
+    def test_set_ownership(self):
+        from getpass import getuser
+        source = os.path.join(self.root, 'ownership')
+        os.mkdir(source)
+        user = getuser()
+        group = "admins"
+        os.system("ls -la %s" % self.root)
+        self.device.set_ownership(source, user, group )
+        os.system("ls -la %s" % self.root)
+
+
+# class LocalDevicePythonTest(LocalDeviceShellTest):
+#     def setUp(self):
+#         from job.plugin import PluginManager 
+#         self.root = tempfile.mkdtemp()
+#         from localDeviceDriver import LocalDevicePython
+#         self.device = LocalDevicePython()
 
 if __name__ == '__main__':
     unittest.main()

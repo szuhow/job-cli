@@ -393,13 +393,13 @@ class LocalDeviceShell(DeviceDriver, PluginManager):
         
         uid = get_user_id(path, user)
         gid = get_group_id(path, group)
-        #
+   
         command = []
         if sudo:
             command += ['sudo']
 
         if group:
-            command += ['chgrp ', group, path]
+            command += ['chgrp', group, path]
             out, err = Popen(command, shell=False, stdout=PIPE, stderr=PIPE).communicate()
             if err:
                 self.logger.exception("Can't change ownership for %s", path)
@@ -410,7 +410,7 @@ class LocalDeviceShell(DeviceDriver, PluginManager):
             command += ['sudo']
            
         if user:
-            command += ['chown ', user, path]
+            command += ['chown', user, path]
             out, err = Popen(command, shell=False, stdout=PIPE, stderr=PIPE).communicate()
             if err:
                 self.logger.exception("Can't change ownership for %s", path)
