@@ -68,23 +68,20 @@ class DeviceDriver():
     # __metaclass__ = abc.ABCMeta
     # @abc.abstractmethod
     def is_dir(self, path):
-        raise NotImplementedError('You must implement this method yourself!')
+        raise NotImplementedError('You must implement this method yourself.')
     def make_dir(self, path):
-        raise NotImplementedError('You must implement this method yourself!')
+        raise NotImplementedError('You must implement this method yourself.')
     def copy_file(self, source, target):
-        raise NotImplementedError('You must implement this method yourself!')
+        raise NotImplementedError('You must implement this method yourself.')
     # @abc.abstractmethod
     def make_link(self, path, targets):
-        raise NotImplementedError('You must implement this method yourself!')
+        raise NotImplementedError('You must implement this method yourself.')
     # @abc.abstractmethod
-    def remove_write_permissions(self, path):
-        raise NotImplementedError('You must implement this method yourself!')
-    # @abc.abstractmethod
-    def add_write_permissions(self, path, group=True, others=False):
-        raise NotImplementedError('You must implement this method yourself!')
+    def set_permissions(self, path, user=None, group=None, others=None):
+        raise NotImplementedError('You must implement this method yourself.')
     # @abc.abstractmethod
     def set_ownership(self, path, user=None, group=None):
-        raise NotImplementedError('You must implement this method yourself!')
+        raise NotImplementedError('You must implement this method yourself.')
 
 
 class Environment():
@@ -96,17 +93,17 @@ class Environment():
         in something else. Thus pluggable version or environment resolving.
     """
     def find_context(self, **kwargs):
-        raise NotImplementedError('You must implement this method yourself!')
+        raise NotImplementedError('You must implement this method yourself.')
    
     def create_context(self, **kwargs):
-        raise NotImplementedError('You must implement this method yourself!')
+        raise NotImplementedError('You must implement this method yourself.')
 
     def execute_context(self, **kwargs):
-        raise NotImplementedError('You must implement this method yourself!')
+        raise NotImplementedError('You must implement this method yourself.')
 
     @property
     def context_name(self, **kwargs):
-        raise NotImplementedError('You must implement this method yourself!')
+        raise NotImplementedError('You must implement this method yourself.')
 
 
 class DatabaseDriver():
@@ -115,10 +112,10 @@ class DatabaseDriver():
     """
     type = PluginType.OptionReader
     def get_project_items(self, **kwargs):
-        raise NotImplementedError('You must implement this method yourself!')
+        raise NotImplementedError('You must implement this method yourself.')
 
     def get_asset(self, **kwargs):
-        raise NotImplementedError('You must implement this method yourself!')
+        raise NotImplementedError('You must implement this method yourself.')
 
 
 class PluginRegister(type):

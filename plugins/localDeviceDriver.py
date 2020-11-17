@@ -288,32 +288,7 @@ class LocalDeviceShell(DeviceDriver, PluginManager):
             raise OSError
 
 
-    # http://stackoverflow.com/questions/16249440/changing-file-permission-in-python
-    def remove_write_permissions(self, path, sudo=USE_SUDO):
-        """Remove write permissions from this path, while keeping all other permissions intact.
-
-        Params:
-            path:  The path whose permissions to alter.
-        """
-        from subprocess import Popen, PIPE
-        command = []
-        # try:
-        #     if sudo:
-        #         command += ['sudo']
-        #     command += ["chmod", "uga-w", path]
-        #     out, err = Popen(command, shell=False, stdout=PIPE, stderr=PIPE).communicate()
-        #     if not err:
-        #         return True
-        #     else:
-        #         self.logger.exception("Can't remove write permission from %s", path)
-        #         raise OSError
-        # except:
-        #     self.logger.exception("Can't remove write permission from %s", path)
-        #     raise OSError
-
-        # self.logger.debug("remove_write_permissions: %s (%s)", path, current_permissions & NO_WRITING)
-
-    def add_write_permissions(self, path, group=True, others=False, user=True, sudo=USE_SUDO):
+    def set_permissions(self, path, user=None, group=None, others=None, sudo=USE_SUDO):
         """ Set permissions flags according to provided params.
 
         Params:

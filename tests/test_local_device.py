@@ -43,7 +43,7 @@ class LocalDeviceShellTest(unittest.TestCase):
         self.device.make_link(source, target)
         self.assertTrue(os.path.islink(target))
 
-    def test_add_write_permissions(self):
+    def test_set_permissions(self):
         import stat
         source = os.path.join(self.root, 'permissions')
         os.mkdir(source)
@@ -75,7 +75,7 @@ class LocalDeviceShellTest(unittest.TestCase):
         source = os.path.join(self.root, 'ownership')
         os.mkdir(source)
         user = getuser()
-        group = "admins"
+        group = "artists"
         os.system("ls -la %s" % self.root)
         self.device.set_ownership(source, user, group )
         os.system("ls -la %s" % self.root)
