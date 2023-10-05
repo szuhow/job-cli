@@ -1,4 +1,4 @@
-# This installs plugins from plugins submodule. 
+# This installs plugins from plugins submodule.
 # This might be too early, don't we think?
 # On the other hand we could place here custom search
 # path for user plugins...

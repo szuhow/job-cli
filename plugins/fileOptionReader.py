@@ -1,21 +1,21 @@
 from job.plugin import PluginManager, PluginType
 
 
-
 class FileOptionReader(PluginManager):
     name = "FileOptionReader"
     type = PluginType.OptionReader
-        
+
     def register_signals(self):
         self.logger.debug("%s registering as %s", self.name, self.type)
         return True
 
     def load_from_file(self, path, extension, options={}):
-        """ TODO: Make use of Schematics to very our files
-            follow any known convension...
+        """TODO: Make use of Schematics to very our files
+        follow any known convension...
         """
+
         def _from_json(json_object):
-            tmp = {}                                 
+            tmp = {}
             if isinstance(json_object, dict):
                 for k in json_object:
                     tmp[k] = _from_json(json_object[k])
@@ -26,17 +26,18 @@ class FileOptionReader(PluginManager):
         from glob import glob
         from os.path import join, split, splitext
         import json
+
         files = []
         for postfix in self.job.JOB_PATH_POSTFIX:
-            path     = join(path, postfix)
+            path = join(path, postfix)
             location = join(path, "*.%s" % extension)
-            files    += glob(location)
+            files += glob(location)
 
         self.job.logger.debug("Options found: %s", files)
 
         for file in files:
             with open(file) as file_object:
-                obj  = json.load(file_object)
+                obj = json.load(file_object)
                 for k, v in obj.items():
                     # This is for caching and safeness
                     if isinstance(v, list):
@@ -46,7 +47,7 @@ class FileOptionReader(PluginManager):
 
     def __call__(self, jobtemplate, extension=None):
         self.job = jobtemplate
-        import job.cli # Just to find job/schema/* location
+        import job.cli  # Just to find job/schema/* location
         from os.path import join, split, realpath, dirname
 
         if not extension:

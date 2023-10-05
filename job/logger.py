@@ -60,11 +60,14 @@ DEFAULT_LOGGER_CONFIG = """ {
 
 from collections import MutableMapping
 
+
 class LoggerFactory(object):
     __config = None
+
     class Config(MutableMapping):
         def __init__(self, data=DEFAULT_LOGGER_CONFIG):
             from json import loads
+
             self.__data = loads(data)
 
         def __len__(self):
@@ -86,15 +89,18 @@ class LoggerFactory(object):
             return k in self.__data
 
     def __init__(self):
-        """ Besides creating config for loggers,
-            sets paths for logging to files per user.
+        """Besides creating config for loggers,
+        sets paths for logging to files per user.
         """
         from os.path import join
+
         self.__config = self.Config()
-        self.__config['handlers']['info_file_handler']['filename']=\
-            join(self.job_user_home, u'info.log')
-        self.__config['handlers']['error_file_handler']['filename']=\
-            join(self.job_user_home, u'errors.log')
+        self.__config["handlers"]["info_file_handler"]["filename"] = join(
+            self.job_user_home, "info.log"
+        )
+        self.__config["handlers"]["error_file_handler"]["filename"] = join(
+            self.job_user_home, "errors.log"
+        )
 
     @property
     def config(self):
@@ -105,8 +111,9 @@ class LoggerFactory(object):
     def job_user_home(self):
         from os.path import expanduser, join, isdir
         from os import mkdir
+
         home = expanduser("~")
-        path = join(home, u".job")
+        path = join(home, ".job")
         if not isdir(path) and isdir(home):
             try:
                 mkdir(path)
@@ -114,33 +121,31 @@ class LoggerFactory(object):
                 raise IOError
         return path
 
-
-    def get_logger(self, name, level='DEBUG'):
-        """ Isn't it too wasful?
-        """
+    def get_logger(self, name, level="DEBUG"):
+        """Isn't it too wasful?"""
         import logging.config
         from logging import getLogger
-    
-        if level not in self.__config['loggers']:
-            level = 'INFO'
-        if name not in self.__config['loggers']:
-            for ll in ('INFO', 'ERROR', 'DEBUG'):
-                logger = self.__config['loggers'][ll].copy() 
-                self.__config['loggers'][name] = logger
+
+        if level not in self.__config["loggers"]:
+            level = "INFO"
+        if name not in self.__config["loggers"]:
+            for ll in ("INFO", "ERROR", "DEBUG"):
+                logger = self.__config["loggers"][ll].copy()
+                self.__config["loggers"][name] = logger
                 logging.config.dictConfig(self.__config)
         logger = getLogger(name)
         logger.setLevel(level)
-        return  logger
+        return logger
 
 
 def main():
-    """ Miniamal test.
-    """
+    """Miniamal test."""
     factory = LoggerFactory()
-    logger  = factory.get_logger(__name__, "DEBUG")
+    logger = factory.get_logger(__name__, "DEBUG")
     logger.info("Testing info")
     logger.warning("Testing warning")
-    logger.debug("Testing debug") 
+    logger.debug("Testing debug")
 
 
-if __name__ == "__main__": main()
+if __name__ == "__main__":
+    main()
