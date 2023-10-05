@@ -121,7 +121,7 @@ class JobSchemaModel(Model):
     log_level = StringType(required=False)
 
 
-class StaticDict(collections.MutableMapping):
+class StaticDict(collections.abc.MutableMapping):
     def __init__(self, data):
         self.__data = data
 

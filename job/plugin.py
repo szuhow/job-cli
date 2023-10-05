@@ -223,7 +223,7 @@ class PluginManager(object, metaclass=PluginRegister):
         Params: List with prefered plugins names.
         Return: First matching plugin.
         """
-        from collections import Iterable
+        from collections.abc import Iterable
         from job.logger import LoggerFactory
 
         assert isinstance(prefered_plugin_names, Iterable)

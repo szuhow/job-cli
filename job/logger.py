@@ -58,7 +58,7 @@ DEFAULT_LOGGER_CONFIG = """ {
     }  
 }"""
 
-from collections import MutableMapping
+from collections.abc import MutableMapping
 
 
 class LoggerFactory(object):
