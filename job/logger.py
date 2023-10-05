@@ -1,4 +1,4 @@
-from utils import ReadOnlyCacheAttrib
+from job.utils import ReadOnlyCacheAttrib
 
 DEFAULT_LOGGER_CONFIG = """ {
     "version": 1,
@@ -112,7 +112,7 @@ class LoggerFactory(object):
                 mkdir(path)
             except:
                 raise IOError
-        return unicode(path)
+        return path
 
 
     def get_logger(self, name, level='DEBUG'):

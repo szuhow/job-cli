@@ -222,7 +222,7 @@ class JobEnvironment(object):
             try:
                 cli_options = load(file)
                 self.logger.debug("Reading cli_options from file: %s", history_file)
-            except IOError, e:
+            except IOError as e:
                 self.logger.exception("Can't read history from %s", history_file)
                 return None
 
@@ -296,7 +296,7 @@ class SetEnvironment(BaseSubCommand):
             try:
                 job.create_user_dirs()
                 job.backend.execute_context(rez_package_names)
-            except Exception, e:
+            except Exception as e:
                 self.logger.exception("Can't set to the job context, ", e)
                 raise SetCommandNotSuccessful(e)
 
