@@ -36,35 +36,38 @@ from .base import BaseSubCommand
 
 
 class NoJobEnvironmentBackend(Exception):
-    """ Raised when JobEnvironment can't find requested backend plugin."""
+    """Raised when JobEnvironment can't find requested backend plugin."""
+
 
 class SetCommandNotSuccessful(Exception):
-    """ Set command could not be performed. Leaving in current shell."""
+    """Set command could not be performed. Leaving in current shell."""
 
 
 class JobEnvironment(object):
-    """ Renders job environment gathering bits of information from
-        JobTemplate created on-the-fly, previuosly saved session,
-        or user settings. At the end, we should call execute() to
-        teleport ourself into prepered environment.
+    """Renders job environment gathering bits of information from
+    JobTemplate created on-the-fly, previuosly saved session,
+    or user settings. At the end, we should call execute() to
+    teleport ourself into prepered environment.
 
     """
+
     cli_options = None
-    job_path    = None
-    def __init__(self, cli_options=None, log_level='INFO'):
-        """ Copy all settings from cli and creates job template class from
-            a description. Also initialize environment plugin, saves it as 
-            a backend object to be used for something usefull.
+    job_path = None
+
+    def __init__(self, cli_options=None, log_level="INFO"):
+        """Copy all settings from cli and creates job template class from
+        a description. Also initialize environment plugin, saves it as
+        a backend object to be used for something useful.
         """
         from os import mkdir
         from os.path import join, expanduser, isdir
         from job.plugin import PluginManager
-        from job.logger import LoggerFactory 
+        from job.logger import LoggerFactory
         import plugins
 
-        self.log_level    = log_level
-        self.logger       = LoggerFactory().get_logger("JobEnvironment", level=log_level)
-        self.plg_manager  = PluginManager(log_level=log_level)
+        self.log_level = log_level
+        self.logger = LoggerFactory().get_logger("JobEnvironment", level=log_level)
+        self.plg_manager = PluginManager(log_level=log_level)
         self.package_path = join(expanduser("~"), ".job")
 
         if not isdir(self.package_path):
@@ -73,7 +76,7 @@ class JobEnvironment(object):
 
         # TODO: Make it configurable
         environ_plugin_name = "RezEnvironment"
-        self.backend = self.plg_manager.get_plugin_by_name(environ_plugin_name) 
+        self.backend = self.plg_manager.get_plugin_by_name(environ_plugin_name)
 
         # This is in case, we will be asking for plugin type rather then by name,
         # so plugin manager might not catch missing one.
@@ -86,54 +89,53 @@ class JobEnvironment(object):
             self.init(cli_options)
 
     def init(self, cli_options, history=True):
-        """ Make all steps requireing cli_options. We might saved this dict
-            in history, so not always command line is what we are after. 
+        """Make all steps that require cli_options. We might saved this dict
+        in history, so not always command line is what we are after.
         """
         from os.path import join, expanduser, isdir
         from os import mkdir
         from json import dumps
 
-        self.cli_options    = cli_options
-        self.job_current    = self.cli_options['PROJECT']
-        self.job_asset_type = self.cli_options['TYPE']
-        self.job_asset_name = self.cli_options['ASSET']
+        self.cli_options = cli_options
+        self.job_current = self.cli_options["PROJECT"]
+        self.job_asset_type = self.cli_options["TYPE"]
+        self.job_asset_name = self.cli_options["ASSET"]
 
-        if self.cli_options['--root']:
-            self.root = self.cli_options['--root']
+        if self.cli_options["--root"]:
+            self.root = self.cli_options["--root"]
         else:
             self.root = None
 
         self.job_template = self.__create_job_template()
-        self.job_path     = self.job_template.expand_path_template()
+        self.job_path = self.job_template.expand_path_template()
 
         # Bind (init) job context tp the job_template:
         self.backend(self.job_template)
 
         if not history or not self.job_current:
             return
-            
+
         # Save history:
         history_folder = join(self.package_path, self.job_current)
         if not isdir(history_folder):
             mkdir(history_folder)
 
-        with open(join(history_folder, "job.history"), 'w') as file:
+        with open(join(history_folder, "job.history"), "w") as file:
             file.write(dumps(self.cli_options))
-        with open(join(self.package_path, "job.history"), 'w') as file:
+        with open(join(self.package_path, "job.history"), "w") as file:
             file.write(dumps(self.cli_options))
-
 
     def find_job_context(self, job_template=None):
-        """ Using underlying context creator find if current
-            job was previously created (by set command). 
+        """Using underlying context creator find if current
+        job was previously created (by set command).
 
-            Parms  : 
-                job_template: job_template once again happends to be definite guide to
-                project details. This is the only way arbitrarty plugins can handle
-                changing naming convension suppored by Job v2.
-    
-            Returns:  manifestation of the job context 
-                      (rez package for example) or None.
+        Parms  :
+            job_template: job_template once again happends to be definite guide to
+            project details. This is the only way arbitrarty plugins can handle
+            changing naming convension suppored by Job v2.
+
+        Returns:  manifestation of the job context
+                  (rez package for example) or None.
         """
 
         if job_template:
@@ -143,35 +145,36 @@ class JobEnvironment(object):
 
         return self.backend.find_context(_template, path=self.package_path)
 
-
     def __create_job_template(self):
-        """ Creates job template instance to trace vital
-            information from it (location, naming convension).
+        """Creates job template instance to trace vital
+        information from it (location, naming convension).
 
-            Returns: JobTemplate class instance.
+        Returns: JobTemplate class instance.
         """
         from job.template import JobTemplate
 
         # Pack arguments so we can ommit None one (like root):
         kwargs = {}
-        kwargs['job_current']    = self.job_current
-        kwargs['job_asset_type'] = self.job_asset_type
-        kwargs['job_asset_name'] = self.job_asset_name
-        kwargs['log_level']      = self.log_level
+        kwargs["job_current"] = self.job_current
+        kwargs["job_asset_type"] = self.job_asset_type
+        kwargs["job_asset_name"] = self.job_asset_name
+        kwargs["log_level"] = self.log_level
         if self.root:
-            kwargs['root']  = self.root
+            kwargs["root"] = self.root
 
         job_template = JobTemplate(**kwargs)
-        if not self.cli_options['--no-local-schema']:
+        if not self.cli_options["--no-local-schema"]:
             local_schema_paths = job_template.get_local_schema_path()
             job_template.load_schemas(local_schema_paths)
-            super(JobTemplate, job_template).__init__(job_template.schema, "job", **kwargs)
+            super(JobTemplate, job_template).__init__(
+                job_template.schema, "job", **kwargs
+            )
 
         return job_template
 
     def create_user_dirs(self, user=None):
-        """ Verb using job template to create user subdir.
-            TODO: This should be moved to JobTemplate class.
+        """Verb using job template to create user subdir.
+        TODO: This should be moved to JobTemplate class.
         """
         from getpass import getuser
         from os.path import join
@@ -182,35 +185,35 @@ class JobEnvironment(object):
         template = self.job_template.render()
 
         for path in template:
-            if template[path]['user_dirs']:
+            if template[path]["user_dirs"]:
                 user_dir = join(path, user)
-                target   = { user_dir: template[path] }
+                target = {user_dir: template[path]}
                 ok = self.job_template.create(targets=target)
                 if not ok:
                     return
         return ok
 
     def get_history_from_file(self, cli_options):
-        """ Finds historic cli_options to recreate JobEnvironment based on 
-            saved information (mostly job_current, job_asset_type, job_asset_name).
+        """Finds historic cli_options to recreate JobEnvironment based on
+        saved information (mostly job_current, job_asset_type, job_asset_name).
 
-            There are two histories suppored: 
-                    a) last set on any project: job set 
-                    b) last set to specified project: job set PROJECT [rest arg is ignored]
+        There are two histories suppored:
+                a) last set on any project: job set
+                b) last set to specified project: job set PROJECT [rest arg is ignored]
 
-            Parms: 
-                cli_options: current cli_options (possibly no args)
+        Parms:
+            cli_options: current cli_options (possibly no args)
 
-            Return: 
-                retrieved from history cli_options
+        Return:
+            retrieved from history cli_options
         """
         from os.path import isfile, join
         from json import load
 
-        if not cli_options['PROJECT']:
+        if not cli_options["PROJECT"]:
             history_folder = self.package_path
         else:
-            history_folder = join(self.package_path, cli_options['PROJECT'])
+            history_folder = join(self.package_path, cli_options["PROJECT"])
 
         history_file = join(history_folder, "job.history")
 
@@ -230,27 +233,32 @@ class JobEnvironment(object):
 
 
 class SetEnvironment(BaseSubCommand):
-    """ Performs setting up of the environment per job.
-    """
- 
+    """Performs setting up of the environment per job."""
+
     def run(self):
-        """ Entry point for sub command.
-        """
+        """Entry point for sub command."""
         from os.path import join, isdir, expanduser
         from getpass import getuser
         from job.logger import LoggerFactory
 
-        log_level   = self.cli_options['--log-level']
+        log_level = self.cli_options["--log-level"]
         self.logger = LoggerFactory().get_logger("SetEnvironment", level=log_level)
-        job         = JobEnvironment(log_level=log_level)
+        job = JobEnvironment(log_level=log_level)
 
         # Lack of PROJECT or ASSET specification triggers reading history file
-        if None in (self.cli_options['PROJECT'], self.cli_options['TYPE'], self.cli_options['ASSET']):
-
+        if None in (
+            self.cli_options["PROJECT"],
+            self.cli_options["TYPE"],
+            self.cli_options["ASSET"],
+        ):
             # Can't deal with both missing args and refreshing...
-            if self.cli_options['--refresh']:
-                self.logger.exception("Can't set with --refresh AND missing arguments. ")
-                raise SetCommandNotSuccessful("Either remove --refresh flag or specify PROJECT TYPE ASSET.")
+            if self.cli_options["--refresh"]:
+                self.logger.exception(
+                    "Can't set with --refresh AND missing arguments. "
+                )
+                raise SetCommandNotSuccessful(
+                    "Either remove --refresh flag or specify PROJECT TYPE ASSET."
+                )
 
             cli_options = job.get_history_from_file(self.cli_options)
 
@@ -259,38 +267,41 @@ class SetEnvironment(BaseSubCommand):
             else:
                 self.logger.warning("Can't set to the job context using history file.")
                 self.logger.warning("I will set you to the sandbox project instead.")
-                self.logger.warning("To avoid this behavior, try: job set PROJECT TYPE ASSET --refresh")
-                self.cli_options['PROJECT'] = 'sandbox'
-                self.cli_options['TYPE']    = 'user'
-                self.cli_options['ASSET']   = getuser()
-                
+                self.logger.warning(
+                    "To avoid this behavior, try: job set PROJECT TYPE ASSET --refresh"
+                )
+                self.cli_options["PROJECT"] = "sandbox"
+                self.cli_options["TYPE"] = "user"
+                self.cli_options["ASSET"] = getuser()
 
-        # Postponed initlilization:
+        # Postponed initialization:
         job.init(self.cli_options)
 
         # Lets check if we can find project in a first place...
         project_path = job.job_template.expand_path_template()
-        local_templ  = job.job_template.get_local_schema_path(template='job')
+        local_templ = job.job_template.get_local_schema_path(template="job")
         if not isdir(project_path) or not isdir(local_templ):
             self.logger.warning("Can't find project %s. Exiting now.", project_path)
             return
 
         # Read additional packages from command line:
         rez_package_names = []
-        if self.cli_options['--rez']:
-            rez_package_names += self.cli_options['--rez']
+        if self.cli_options["--rez"]:
+            rez_package_names += self.cli_options["--rez"]
 
         # ...some might be also added in job.options:
         if "--rez" in job.job_template.job_options:
-            rez_package_names += job.job_template.job_options['--rez']
+            rez_package_names += job.job_template.job_options["--rez"]
 
-        ok  = job.find_job_context()
+        ok = job.find_job_context()
 
         # Either this is first set to this asset or we want to refresh its definition:
-        if not ok or self.cli_options['--refresh']:
+        if not ok or self.cli_options["--refresh"]:
             context_name, package_name, package_version = job.backend.context_name()
             self.logger.warning("Not package %s found... creating it.", package_name)
-            ok = job.backend.create_context(requires=rez_package_names, custom={'test':'test'})
+            ok = job.backend.create_context(
+                requires=rez_package_names, custom={"test": "test"}
+            )
 
         if ok:
             try:
@@ -302,16 +313,3 @@ class SetEnvironment(BaseSubCommand):
 
         else:
             self.logger.info("Can't set to job. Exiting.")
-
-
-       
-
-
-
-
-
-
-
-
-
-      
