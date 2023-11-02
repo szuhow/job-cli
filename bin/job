@@ -80,7 +80,7 @@ def get_sub_command(options):
     """ Gets a command.module.Class which coresponds to docopt
         subcommand (first argument).
 
-        Params:
+        Params:3
             options - dictionary of command line options
                       as returned by docopt.
         Returns:
@@ -93,14 +93,15 @@ def get_sub_command(options):
     from commands.base import BaseSubCommand
     from inspect import getmembers, isclass
     subcommand = None  
+
     for k, v in options.items():
         if not hasattr(commands, k) or not v:
           continue
         module = getattr(commands, k) 
+        print("Module found %s" % module)
         candidates = [cls[1] for cls in getmembers(module, isclass)]
         # We are only interested in classes derived from Base:
-        subcommand = [cls for cls in candidates if issubclass(cls, BaseSubCommand) \
-                      and cls != BaseSubCommand][0]
+        subcommand = [cls for cls in candidates if issubclass(cls, BaseSubCommand) and cls != BaseSubCommand][0]
         return subcommand
     return
     
@@ -108,7 +109,7 @@ def main():
     """ Minimal entry point for job-cli environment. This calls sub command from
         job-cli/commands directory from where work starts happening.
     """
-
+ 
     from job.logger import LoggerFactory
     cli_options = docopt(__doc__, version='job version 2.1.0')
 
@@ -127,4 +128,5 @@ def main():
     command.run()
 
 
-if __name__ == "__main__": main()
+if __name__ == "__main__":
+    main()

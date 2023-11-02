@@ -1,0 +1,73 @@
+<job host="API" version="1.0" uuid="c0b54751-bd33-49a9-81d4-7660ddc0e4df">
+	<templates>
+		<identifier name="job_name" template="{scene}_{hash}_{layer}">
+			<parm name="scene" value=".//details/parm[@name='scene_name']" type="str" />
+			<parm name="hash" value=".//details/parm[@name='hash']" type="str" />
+			<parm name="layer" value=".//details/parm[@name='layer_name']" type="str" />
+		</identifier>
+		<identifier name="camera">
+			<parm name="ownership:user" value="False" type="str" />
+			<parm name="ownership:groups" value="False" type="str" />
+			<parm name="permission:group" value="True" type="str" />
+			<parm name="permission:others" value="False" type="str" />
+			<parm name="root" value="/tmp/test" type="str" />
+			<subdir name="subdir" value=".//templates/*[@name='camera_formats']" type="str" />
+			<subdir name="some_dir" value=".//templates/*[@name='some_dir']" type="str" />
+		</identifier>
+		<identifier name="camera">
+			<parm name="ownership:user" value="False" type="str" />
+			<parm name="ownership:groups" value="False" type="str" />
+			<parm name="permission:group" value="True" type="str" />
+			<parm name="permission:others" value="False" type="str" />
+			<parm name="root" value="/tmp/test" type="str" />
+		</identifier>
+		<identifier name="some_dir">
+			<parm name="ownership:user" value="False" type="str" />
+			<parm name="ownership:groups" value="False" type="str" />
+			<parm name="permission:group" value="True" type="str" />
+			<parm name="permission:others" value="False" type="str" />
+			<parm name="root" value="/tmp/test" type="str" />
+		</identifier>
+	</templates>
+	<details>
+		<parm name="job_current" value="$JOB_CURRENT" type="str" />
+		<parm name="job_asset_type" value="$JOB_ASSET_TYPE" type="str" />
+		<parm name="job_asset_name" value="$JOB_ASSET_NAME" type="str" />
+		<parm name="scene_name" value="myscene.hip" type="str" />
+		<parm name="layer_name" value="test" type="str" />
+		<parm name="hash" value="Rt67o" type="str" />
+		<parm name="demeter_class_name" value="Ifd" type="str" />
+	</details>
+	<scheduler>
+		<parm name="start_frame" value="1001" type="int" />
+		<parm name="end_frame" value="1010" type="int" />
+		<parm name="step_frame" value="1" type="int" />
+		<parm name="queue_name" value="3d" type="str" />
+		<parm name="group_name" value="" type="str" />
+		<parm name="request_start_time" value="0.0" type="float" />
+		<parm name="priority" value="0" type="int" />
+		<parm name="job_on_hold" value="False" type="bool" />
+		<parm name="time_limit" value="0" type="int" />
+	</scheduler>
+	<paths>
+		<path name="daily">
+			<parm name="camera" value=".//template/*[@name='camera']" type="str" />
+			<parm name="render" value=".//template/*parm[@name='render']" type="str" />
+			<parm name="dailies" value=".//template/*parm[@name='dailies']" type="str" />
+		</path>
+	</paths>
+	<environment>
+		<parm name="task_id" value="$DEMETER_TASK_ID" />
+		<parm name="DEMETER_HOME" value="/home/symek/work/demeter" />
+		<parm name="render_cache" value="$JOB/symek/render/sungrid" />
+		<parm name="scratch" value="/mnt/lustre/temp" />
+	</environment>
+	<execution>
+		<command name="hython" template="{binary} {flags} -f {path}/{scene}.hip" evaluate="1">
+			<parm name="binary" value="$HFS/bin/hython" type="str" />
+			<parm name="flags" value="-V3" type="str" />
+			<parm name="path" value=".//environment/*[@name='render_cache']" type="str" />
+			<parm name="scene" value=".//templates/*[@name='job_name']" type="str" />
+		</command>
+	</execution>
+</job>

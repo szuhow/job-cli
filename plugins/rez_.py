@@ -43,23 +43,27 @@ REZ_FOUND = False
 # TODO: We may place it into a class itself for cleaner setup, but
 # this is contr-intuitive. Test it.
 
-if not os.getenv("REZ_CONFIG_FILE", None):
-    try:
-        import rez
+# if not os.getenv("REZ_CONFIG_FILE", None):
+# try:
+import sys
+sys.path.append("/usr/local/rez/lib/python3.10/site-packages")
+import rez
 
-        REZ_FOUND = True
-    except ImportError as e:
-        pass
-else:
-    rez_path = os.environ["REZ_CONFIG_FILE"]
-    rez_path = os.path.dirname(rez_path)
-    rez_candidate = os.path.join(rez_path, "lib64/python2.7/site-packages/rez-*.egg")
-    rez_candidate = glob(rez_candidate)
-    if rez_candidate:
-        sys.path.append(rez_candidate[0])
-        import rez
+REZ_FOUND = True
+# except ImportError as e:
+#     print("ImportError")
+#     pass
+# else:
+#     rez_path = os.environ["REZ_CONFIG_FILE"]
+#     rez_path = os.path.dirname(rez_path)
+#     rez_candidate = os.path.join(rez_path, "lib64/python2.7/site-packages/rez-*.egg")
+#     print(rez_candidate)
+#     rez_candidate = glob(rez_candidate)
+#     if rez_candidate:
+#         sys.path.append(rez_candidate[0])
+#         import rezr
 
-        REZ_FOUND = True
+    # REZ_FOUND = True
 
 
 class NoJobTemplateSet(Exception):
