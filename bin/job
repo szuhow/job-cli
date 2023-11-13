@@ -42,6 +42,7 @@ Usage:
   job read  PROJECT [TYPE ASSET] [FIELDS...] [--log-level=INFO]
   job write PROJECT [TYPE ASSET] [FIELDS...] [--log-level=INFO]
   job (-h | --help)
+  job samplecommand PROJECT
   job --version
 
 
@@ -56,8 +57,8 @@ Options:
   --root=<prefix>       Overrides root directory (for debuging) 
 """
 
-import sys, os
-from os.path import realpath, dirname, join, exists
+import sys
+from os.path import realpath, dirname, join
 
 # Get root directory
 job_root_path = dirname(realpath(__file__))
@@ -75,6 +76,29 @@ except ImportError as error:
     print(error)
     raise
 
+import unittest
+from tests.test_localDeviceDriver import TestLocalDevicePython
+from tests.test_set import TestJobEnvironment
+def run_tests():
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestJobEnvironment)
+    runner = unittest.TextTestRunner()
+    results = runner.run(suite)
+
+    print("Ran {} tests.".format(results.testsRun))
+
+    if results.wasSuccessful():
+        print("All tests passed.")
+    else:
+        print("Some tests failed.")
+        print("{} tests failed.".format(len(results.failures)))
+        for test, traceback in results.failures:
+            print("Failure: {}:\n{}".format(test, traceback))
+
+        print("{} tests had errors.".format(len(results.errors)))
+        for test, traceback in results.errors:
+            print("Error: {}:\n{}".format(test, traceback))
+
+
 
 def get_sub_command(options):
     """ Gets a command.module.Class which coresponds to docopt
@@ -85,20 +109,28 @@ def get_sub_command(options):
                       as returned by docopt.
         Returns:
             Class object from command.module (not initilized).
-    
-        CLI setup based on https://stormpath.com/blog/\
+
+        CLI setup based on https://stormpath.com/blog/
         building-simple-cli-interfaces-in-python
     """
+   
+    # sys.path.insert(0, '/Users/rafalszulinski/IdeaProjects/humandj/external_commands')
+    # import external_commands
+
     import commands
     from commands.base import BaseSubCommand
     from inspect import getmembers, isclass
     subcommand = None  
+    print("Subclasses of BaseSubCommand: %s" % BaseSubCommand.__subclasses__())
+    
 
     for k, v in options.items():
         if not hasattr(commands, k) or not v:
           continue
+        # add external_commands to the commands
+
         module = getattr(commands, k) 
-        print("Module found %s" % module)
+        print("Module found %s with " % module)
         candidates = [cls[1] for cls in getmembers(module, isclass)]
         # We are only interested in classes derived from Base:
         subcommand = [cls for cls in candidates if issubclass(cls, BaseSubCommand) and cls != BaseSubCommand][0]
@@ -118,7 +150,7 @@ def main():
 
     command = get_sub_command(cli_options)
     logger.debug("Command found %s", command)
-
+    
     if not command:
         # This is temporary
         print(__doc__)
@@ -127,6 +159,6 @@ def main():
     command = command(cli_options)
     command.run()
 
-
 if __name__ == "__main__":
+    # run_tests()
     main()
