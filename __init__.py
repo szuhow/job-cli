@@ -6,6 +6,9 @@
 # to be initialzed, so theroretically plugin refusing to initialize
 # won't break anyting.
 # import plugins
-import external.schematics
-import job.schema
-import job.plugin
+# import external.schematics
+# import job.schema
+# import job.plugin
+# import commands
+# from commands import init
+from . import *

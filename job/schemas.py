@@ -1,9 +1,8 @@
-from schematics.models import Model
-from schematics.types import StringType, URLType, BooleanType, BaseType, IntType
-from schematics.types import UUIDType, DateTimeType, TimestampType
-from schematics.types import ListType, ModelType, DictType, PolyModelType
-from schematics import exceptions
-
+from external.schematics.schematics.models import Model
+from external.schematics.schematics.types import StringType, URLType, BooleanType, BaseType, IntType
+from external.schematics.schematics.types import UUIDType, DateTimeType, TimestampType
+from external.schematics.schematics.types import ListType, ModelType, DictType, PolyModelType
+from external.schematics.schematics import exceptions
 import json
 import collections
 

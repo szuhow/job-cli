@@ -57,6 +57,9 @@ Options:
   --root=<prefix>       Overrides root directory (for debuging) 
 """
 
+
+
+
 import sys
 from os.path import realpath, dirname, join
 
@@ -121,7 +124,7 @@ def get_sub_command(options):
     from commands.base import BaseSubCommand
     from inspect import getmembers, isclass
     subcommand = None  
-    print("Subclasses of BaseSubCommand: %s" % BaseSubCommand.__subclasses__())
+    # print("Subclasses of BaseSubCommand: %s" % BaseSubCommand.__subclasses__())
     
 
     for k, v in options.items():
@@ -134,6 +137,7 @@ def get_sub_command(options):
         candidates = [cls[1] for cls in getmembers(module, isclass)]
         # We are only interested in classes derived from Base:
         subcommand = [cls for cls in candidates if issubclass(cls, BaseSubCommand) and cls != BaseSubCommand][0]
+        print("Subcommand found %s" % subcommand)
         return subcommand
     return
     
@@ -144,11 +148,12 @@ def main():
  
     from job.logger import LoggerFactory
     cli_options = docopt(__doc__, version='job version 2.1.0')
-
+    print("CLI options: %s" % cli_options)
     logger = LoggerFactory().get_logger("Job (main entry)", \
         level=cli_options['--log-level'])
 
     command = get_sub_command(cli_options)
+    print("Command found %s" % command)
     logger.debug("Command found %s", command)
     
     if not command:

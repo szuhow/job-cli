@@ -32,7 +32,7 @@
 #
 ##########################################################################
 
-from .base import BaseSubCommand
+from commands.base import BaseSubCommand
 
 
 class NoJobEnvironmentBackend(Exception):
@@ -102,6 +102,7 @@ class JobEnvironment(object):
         self.job_asset_type = self.cli_options["TYPE"]
         self.job_asset_name = self.cli_options["ASSET"]
 
+        print("Job cli root: %s" % self.cli_options["--root"])
         if self.cli_options["--root"]:
             self.root = self.cli_options["--root"]
         else:

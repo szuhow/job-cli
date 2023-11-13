@@ -1,0 +1,233 @@
+#!/usr/bin/env python
+##########################################################################
+#
+#  Copyright (c) 2017, Human Ark Animation Studio. All rights reserved.
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions are
+#  met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#
+#     * Neither the name of Human Ark Animation Studio nor the names of any
+#       other contributors to this software may be used to endorse or
+#       promote products derived from this software without specific prior
+#       written permission.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+#  IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+#  THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+#  PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+#  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+#  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+#  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+#  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+#  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+#  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+##########################################################################
+# import sys
+# from os.path import realpath, dirname, join
+
+# Get root directory
+# job_root_path = dirname(realpath(__file__))
+# job_root_path = dirname(job_root_path)
+# sys.path = [job_root_path] + sys.path
+
+
+import click
+from commands import *
+@click.group(help="CLI tool to manage full development cycle of projects")
+def cli():
+    pass
+# @cli.command(help='Create a new job project')
+# @click.argument('project')
+# @click.option('--type', 'asset_type', default='asset', help='Type of asset to create')
+# @click.option('--log-level', default='INFO', help='Log level of subcommands (INFO | DEBUG) [default: INFO]')
+# @click.option('--root', default='prefix', help='Overrides root directory (for debugging)')
+# @click.option('--no-local-schema', is_flag=True, help='Disable saving/loading local copy of schema on "create"')
+# @click.option('--fromdb', is_flag=True)
+# @click.option('--sanitize', is_flag=True, help='Convert external names (from Shotgun i.e.)')
+# def create(project, asset_type, log_level, root, no_local_schema, fromdb, sanitize):
+#     pass
+
+# @cli.command(help='Set the job environment')
+# @click.argument('project', required=False)
+# @click.argument('asset_type', required=False)
+# @click.option('--rez', multiple=True)
+# @click.option('--log-level', default='INFO', help='Log level of subcommands (INFO | DEBUG) [default: INFO]')
+# @click.option('--root', default='prefix', help='Overrides root directory (for debugging)')
+# @click.option('--refresh', is_flag=True, help='Ignore existing job context, and recreate it from scratch.')
+# def set(project, asset_type, rez, log_level, root, refresh):
+#     pass
+
+# @cli.command(help='Archive a job project')
+# @click.argument('project')
+# def archive(project):
+#     pass
+
+
+
+# @cli.command(help='Write data to a job project')
+# @click.argument('project')
+# @click.argument('asset_type', required=False)
+# @click.argument('fields', nargs=-1)
+# @click.option('--log-level', default='INFO', help='Log level of subcommands (INFO | DEBUG) [default: INFO]')
+# def write(project, asset_type=None, fields=None, log_level=None):
+#     pass
+
+# @cli.command(help='Sample command')
+# @click.argument('project')
+# def samplecommand(project):
+#     pass
+
+import pkgutil
+import commands
+
+# Iteruj przez wszystkie moduły w pakiecie 'commands'
+for loader, module_name, is_pkg in pkgutil.iter_modules(commands.__path__):
+    # Importuj moduł
+    module = loader.find_module(module_name).load_module(module_name)
+    
+    # Dodaj wszystkie komendy z modułu do cli
+    for attr_name in dir(module):
+        attr = getattr(module, attr_name)
+        if isinstance(attr, click.Command):
+            cli.add_command(attr)
+            
+
+def print_help_msg(command):
+
+    with click.Context(command) as ctx:
+        click.echo(command.get_help(ctx))
+
+
+
+
+if __name__ == '__main__':
+    # for each click command, print the help message
+    # for each module in commands folder import it and add it to the cli
+
+    
+    for command in cli.commands.values():
+        print_help_msg(command)
+    cli()
+
+# import cli from create.py file in commands folder
+
+
+
+
+
+
+# import sys
+# from os.path import realpath, dirname, join
+
+# # Get root directory
+# job_root_path = dirname(realpath(__file__))
+# job_root_path = dirname(job_root_path)
+# sys.path = [job_root_path] + sys.path
+# sys.path += [join(job_root_path, "external/docopt")]
+# sys.path += [join(job_root_path, "external/schematics")]
+
+
+# # Make sure we can import main module
+# try:
+#     import job
+#     from docopt import docopt
+# except ImportError as error:
+#     print(error)
+#     raise
+
+# import unittest
+# from tests.test_localDeviceDriver import TestLocalDevicePython
+# from tests.test_set import TestJobEnvironment
+# def run_tests():
+#     suite = unittest.TestLoader().loadTestsFromTestCase(TestJobEnvironment)
+#     runner = unittest.TextTestRunner()
+#     results = runner.run(suite)
+
+#     print("Ran {} tests.".format(results.testsRun))
+
+#     if results.wasSuccessful():
+#         print("All tests passed.")
+#     else:
+#         print("Some tests failed.")
+#         print("{} tests failed.".format(len(results.failures)))
+#         for test, traceback in results.failures:
+#             print("Failure: {}:\n{}".format(test, traceback))
+
+#         print("{} tests had errors.".format(len(results.errors)))
+#         for test, traceback in results.errors:
+#             print("Error: {}:\n{}".format(test, traceback))
+
+
+
+# def get_sub_command(options):
+#     """ Gets a command.module.Class which coresponds to docopt
+#         subcommand (first argument).
+
+#         Params:3
+#             options - dictionary of command line options
+#                       as returned by docopt.
+#         Returns:
+#             Class object from command.module (not initilized).
+
+#         CLI setup based on https://stormpath.com/blog/
+#         building-simple-cli-interfaces-in-python
+#     """
+   
+#     # sys.path.insert(0, '/Users/rafalszulinski/IdeaProjects/humandj/external_commands')
+#     # import external_commands
+
+#     import commands
+#     from commands.base import BaseSubCommand
+#     from inspect import getmembers, isclass
+#     subcommand = None  
+#     print("Subclasses of BaseSubCommand: %s" % BaseSubCommand.__subclasses__())
+    
+
+#     for k, v in options.items():
+#         if not hasattr(commands, k) or not v:
+#           continue
+#         # add external_commands to the commands
+
+#         module = getattr(commands, k) 
+#         print("Module found %s with " % module)
+#         candidates = [cls[1] for cls in getmembers(module, isclass)]
+#         # We are only interested in classes derived from Base:
+#         subcommand = [cls for cls in candidates if issubclass(cls, BaseSubCommand) and cls != BaseSubCommand][0]
+#         return subcommand
+#     return
+    
+# def main():
+#     """ Minimal entry point for job-cli environment. This calls sub command from
+#         job-cli/commands directory from where work starts happening.
+#     """
+ 
+#     from job.logger import LoggerFactory
+#     cli_options = docopt(__doc__, version='job version 2.1.0')
+
+#     logger = LoggerFactory().get_logger("Job (main entry)", \
+#         level=cli_options['--log-level'])
+
+#     command = get_sub_command(cli_options)
+#     logger.debug("Command found %s", command)
+    
+#     if not command:
+#         # This is temporary
+#         print(__doc__)
+#         return
+
+#     command = command(cli_options)
+#     command.run()
+
+# if __name__ == "__main__":
+#     run_tests()
+#     # main()

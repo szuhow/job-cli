@@ -19,9 +19,9 @@ class BaseSubCommand(object):
         # _opt = self.cli_options
         if self.cli_options:
             _opt = self.options
-        if _opt["--log-level"]:
+        if _opt["log_level"]:
             try:
-                log_level = getattr(logging, _opt["--log-level"])
+                log_level = getattr(logging, _opt["log_level"])
             except:
                 pass
         return log_level

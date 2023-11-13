@@ -1,4 +1,4 @@
-from .base import BaseSubCommand
+from commands.base import BaseSubCommand
 
 
 class WriteShotgun(BaseSubCommand):

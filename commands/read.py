@@ -1,4 +1,13 @@
-from .base import BaseSubCommand
+from commands.base import BaseSubCommand
+import click
+
+# @click.command(help='Read data from a job project')
+# @click.argument('project')
+# @click.argument('asset_type', required=False)
+# @click.argument('fields', nargs=-1)
+# @click.option('--log-level', default='INFO', help='Log level of subcommands (INFO | DEBUG) [default: INFO]')
+# def read(project, asset_type=None, fields=None, log_level=None):
+#     pass
 
 
 class ReadShotgun(BaseSubCommand):

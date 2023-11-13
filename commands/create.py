@@ -34,7 +34,25 @@
 #
 ##########################################################################
 
-from .base import BaseSubCommand
+from commands.base import BaseSubCommand
+import click
+
+@click.command(help='Create a new job project')
+@click.argument('project')
+@click.argument('type')
+@click.argument('asset')
+# @click.option('--type', 'asset_type', default='asset', help='Type of asset to create')
+@click.option('--log-level', default='INFO', help='Log level of subcommands (INFO | DEBUG) [default: INFO]')
+@click.option('--root', default='prefix', help='Overrides root directory (for debugging)')
+@click.option('--no-local-schema', is_flag=True, help='Disable saving/loading local copy of schema on "create"')
+@click.option('--fromdb', is_flag=True)
+@click.option('--sanitize', is_flag=True, help='Convert external names (from Shotgun i.e.)')
+def create(project, type, asset, log_level, root, no_local_schema, fromdb, sanitize):
+    print("create")
+    print(locals())
+    return CreateJobTemplate(cli_options=locals()).run()
+    
+
 
 
 class CreateJobTemplate(BaseSubCommand):
@@ -110,7 +128,7 @@ class CreateJobTemplate(BaseSubCommand):
         kwargs["job_asset_type"] = type_
         kwargs["job_asset_name"] = asset
         kwargs["log_level"] = log_level
-        if root:
+        if root and root != "prefix":
             kwargs["root"] = root
 
         # Assets may contain range expression which we might want to expand:
@@ -136,6 +154,7 @@ class CreateJobTemplate(BaseSubCommand):
 
         return job
 
+
     def run(self):
         """Entry point create job command."""
         from copy import deepcopy
@@ -143,20 +162,20 @@ class CreateJobTemplate(BaseSubCommand):
         from job.logger import LoggerFactory
         from job.plugin import PluginManager
 
-        log_level = self.cli_options["--log-level"]
+        log_level = self.cli_options["log_level"]
         self.logger = LoggerFactory().get_logger("CreateJobTemplate", level=log_level)
-        self.plg_manager = PluginManager(self.cli_options["--log-level"])
+        self.plg_manager = PluginManager(self.cli_options["log_level"])
 
-        project = self.cli_options["PROJECT"]
-        type_ = self.cli_options["TYPE"]
-        asset = self.cli_options["ASSET"]
-        log_lev = self.cli_options["--log-level"]
-        no_local = self.cli_options["--no-local-schema"]
-        root = self.cli_options["--root"]
-        sanitize = self.cli_options["--sanitize"]
+        project = self.cli_options["project"]
+        type_ = self.cli_options["type"]
+        asset = self.cli_options["asset"]
+        log_lev = self.cli_options["log_level"]
+        no_local = self.cli_options["no_local_schema"]
+        root = self.cli_options["root"]
+        sanitize = self.cli_options["sanitize"]
 
         # Usual path without database pull.
-        if not self.cli_options["--fromdb"]:
+        if not self.cli_options["fromdb"]:
             # Create root asset just in case (project/project/project)
             job = self.create_job(
                 project, project, project, root, no_local, log_lev, dry_run=True
