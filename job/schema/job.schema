@@ -1,8 +1,8 @@
 {
     "version"  : "0.1.0",
-    "user_dirs": false, 
-    "permission": {"group": false,
-    			         "others": false}, 
+    "user_dirs": true, 
+    "permission": {"group": true,
+    			         "others": true}, 
      "ownership": {"user" : null, 
      			  "group": null},
     "job_asset_name": "$USER", 

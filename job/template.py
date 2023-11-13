@@ -78,6 +78,7 @@ class LocationTemplate(dict):
         # This we should sanitaze kwargs here, so keys not present in schema
         # are saved separetly. We could also do it on saving.
         for k, v in kwargs.items():
+            print(f"Setting {k} to {v}")
             self[k] = v
 
     def __getitem__(self, key):
@@ -216,6 +217,7 @@ class LocationTemplate(dict):
             path = join(root, name)
             path = expandvars(path)
             if not valid_variables_expantion(path):
+
                 self.get_root_template().logger.info("Job has to quit due to errors...")
                 exit()
             targets[path] = self
@@ -313,7 +315,6 @@ class JobTemplate(LocationTemplate):
         """
         from os.path import join, split, realpath, dirname
         from job.logger import LoggerFactory
-
         name = self.__class__.__name__
         self.logger = LoggerFactory().get_logger(name, level=log_level)
 
@@ -336,6 +337,7 @@ class JobTemplate(LocationTemplate):
         self.job_options_reader = self.plg_manager.get_plugin_by_name(
             "FileOptionReader"
         )
+        # print(f"Job options reader: {self.job_options_reader}")
         # We have recursion here: we use file option reader plugin to read options,
         # just to possibly find out that we should use different plugin to
         # read options with... e...
@@ -357,6 +359,7 @@ class JobTemplate(LocationTemplate):
         # We oddly add options attrib to self here.
         # TOD): Consider moving it to JobEnvironment class once we will move it
         # to cli from set.py
+        # print(f"Job options reader: {self.job_options_reader}")
         self.job_options = self.job_options_reader(self)
         if not self.job_options:
             self.logger.debug(
@@ -420,7 +423,9 @@ class JobTemplate(LocationTemplate):
         def patch_local_schema(schema, local):
             """Makes changes to schema based on local settings."""
             # TODO: Should it be recursive?
+            # print(f"Local: {local}")
             for key in schema:
+                # print(f"Key: {key}")
                 if key not in local:
                     continue
                 if schema[key] == local[key]:
@@ -437,9 +442,11 @@ class JobTemplate(LocationTemplate):
         tmpl_objects = {}
         exclude_inlines = []
         targets = self.render(clear_storage=True).values()
+        # print(f"Targets: {targets}")
         # FIXME: We need to keep track of inline templates... dirty.
         for tmpl in targets:
             for inline in tmpl["sub_dirs"]:
+                # print(f"Inline: {inline}")
                 if inline["type"] == "location":
                     exclude_inlines += [inline["name"]]
 
@@ -457,6 +464,7 @@ class JobTemplate(LocationTemplate):
         # also, should we conver all os.path functionality!?
         prefered_devices = self.__preferences["plugin"]["DeviceDriver"]
         device = self.plg_manager.get_first_maching_plugin(prefered_devices)
+        print(f"Device: {device}")
         if not device:
             self.logger.exception("Can't find prefered device %s", prefered_devices)
             raise IOError
@@ -573,6 +581,6 @@ class JobTemplate(LocationTemplate):
 
             # Commented as lack of attrs
             # Cosmetics:
-            # device.remove_write_permissions(path)
-            # device.add_write_permissions(path, **targets[path]['permission'])
-            # device.set_ownership(path, **targets[path]['ownership'])
+            device.remove_write_permissions(path)
+            device.add_write_permissions(path, **targets[path]['permission'])
+            device.set_ownership(path, **targets[path]['ownership'])

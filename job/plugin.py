@@ -63,6 +63,9 @@ class PluginType(object):
     class Environment(type):
         pass
 
+    class Sample(type):
+        pass
+
 
 class DeviceDriver:
     """Abstract class defining an interface to production storage.
@@ -210,6 +213,7 @@ class PluginManager(object, metaclass=PluginRegister):
 
         for plugin in self.plugins:
             if plugin.name == name:
+                print(plugin.name)
                 # FIXME: this is workaround...
                 plugin.logger = LoggerFactory().get_logger(name, level=self.log_level)
                 return plugin

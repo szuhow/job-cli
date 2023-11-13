@@ -42,6 +42,10 @@ class CreateJobTemplate(BaseSubCommand):
     based on schemas.
     """
 
+    def __init__(self, cli_options, *args, **kwargs):
+        super().__init__(cli_options, *args, **kwargs)
+        # self.options.extend(cli_options)
+
     def create_job_asset_range(self, job_asset_name, number_mult=10, zeros=4):
         """Generates a list of asset names from asset name expression:
         asset_name[1-10]
@@ -118,10 +122,12 @@ class CreateJobTemplate(BaseSubCommand):
             for asset in asset_range:
                 kwargs["job_asset_name"] = asset
                 job = JobTemplate(**kwargs)
+
                 # We need to reinitialize Job() to find local schemas:
                 # This is contr-intuitive as this is most common case, not exeption.
                 if not no_local_schema:
                     local_schema_path = job.get_local_schema_path()
+                    print(f"Loading local schema from {local_schema_path}")
                     job.load_schemas(local_schema_path)
                     super(JobTemplate, job).__init__(job.schema, "job", **kwargs)
                 # We may want to create jobtemplate without executing it.
@@ -155,6 +161,7 @@ class CreateJobTemplate(BaseSubCommand):
             job = self.create_job(
                 project, project, project, root, no_local, log_lev, dry_run=True
             )
+
             if not job.exists():
                 job.create()
                 if not no_local:

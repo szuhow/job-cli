@@ -97,6 +97,7 @@ class JobEnvironment(object):
         from json import dumps
 
         self.cli_options = cli_options
+        print("CLI options: %s" % self.cli_options)
         self.job_current = self.cli_options["PROJECT"]
         self.job_asset_type = self.cli_options["TYPE"]
         self.job_asset_name = self.cli_options["ASSET"]

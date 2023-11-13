@@ -143,7 +143,7 @@ def get_log_level_from_options(self, options={}):
         log_level = getattr(logging, options["--log-level"])
     except:
         pass
-
+    print("Log level set to %s" % log_level)
     return log_level
 
 
@@ -221,3 +221,5 @@ class ReadOnlyCacheAttrib(object):
 
     def __delete__(self, inst):
         del inst.__dict__[self.name]
+
+

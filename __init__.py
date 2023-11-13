@@ -8,4 +8,4 @@
 # import plugins
 import external.schematics
 import job.schema
-import job
+import job.plugin

@@ -1,7 +1,11 @@
 from job.plugin import PluginManager, PluginType, DeviceDriver
 from logging import INFO
 import os, stat
-
+from grp import getgrnam
+from pwd import getpwnam, getpwuid
+from getpass import getuser
+from subprocess import Popen, PIPE
+from job.utils import get_log_level_from_options
 # TODO: remove
 USE_SUDO = False
 
@@ -11,11 +15,17 @@ class LocalDevicePython(DeviceDriver, PluginManager):
     type = PluginType.DeviceDriver
     logger = None
 
-    def __init__(self, log_level=INFO, **kwargs):
+    def __init__(self, log_level = INFO, **kwargs):
         name = self.__class__
+        # print(name)
+        # print(f"LocalDevicePython {kwargs}")
+        self.kwargs = kwargs    
         from job.logger import LoggerFactory
 
+        # if "log_level" in self.kwargs:
+        #     self.log_level = self.kwargs["log_level"]
         name = self.__class__.__name__
+        print(f"Log level {log_level}")
         self.logger = LoggerFactory().get_logger(name, level=log_level)
 
     def register_signals(self):
@@ -69,7 +79,7 @@ class LocalDevicePython(DeviceDriver, PluginManager):
             raise IOError
 
     def make_link(self, path, link_path):
-        print(f"Path {path} and {link_path}")
+        # print(f"Path {path} and {link_path}")
         if os.path.exists(link_path):
             if os.path.islink(link_path):
                 self.logger.warning("Link exists %s", link_path)
@@ -144,9 +154,7 @@ class LocalDevicePython(DeviceDriver, PluginManager):
             user:  User string (None means no change)
             group: Group string (None means no change)
         """
-        from grp import getgrnam
-        from pwd import getpwnam, getpwuid
-        from getpass import getuser
+
 
         def get_user_id(path, user):
             """ """
@@ -230,7 +238,7 @@ class LocalDeviceShell(DeviceDriver, PluginManager):
                 self.logger.debug("Making %s", path)
                 return True
             else:
-                print(err)
+                # print(err)
                 self.logger.exception(str(err))
                 raise OSError
         except OSError as e:
@@ -271,7 +279,7 @@ class LocalDeviceShell(DeviceDriver, PluginManager):
 
     def make_link(self, path, link_path, sudo=USE_SUDO):
         from subprocess import Popen, PIPE
-
+        
         command = []
         if os.path.exists(link_path):
             if os.path.islink(link_path):
@@ -353,10 +361,7 @@ class LocalDeviceShell(DeviceDriver, PluginManager):
             user:  User string (None means no change)
             group: Group string (None means no change)
         """
-        from grp import getgrnam
-        from pwd import getpwnam, getpwuid
-        from getpass import getuser
-        from subprocess import Popen, PIPE
+
 
         def get_user_id(path, user):
             """ """

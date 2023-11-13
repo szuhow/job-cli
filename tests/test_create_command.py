@@ -40,13 +40,13 @@ class CreateJobTemplateTest(unittest.TestCase):
     def test_create_job(self):
         from job.template import JobTemplate
         project = self.cli_options['PROJECT']
-        type_   = self.cli_options['TYPE']
-        asset   = self.cli_options['ASSET']
-        root    = self.tmp
+        type_ = self.cli_options['TYPE']
+        asset = self.cli_options['ASSET']
+        root = self.tmp
         no_local_schema = self.cli_options['--no-local-schema']
-        log_level       = self.cli_options['--log-level']
-        job = self.creator.create_job(project, project, project, 
-            root, no_local_schema, log_level, dry_run=False)
+        log_level = self.cli_options['--log-level']
+        job = self.creator.create_job(project, project, project,
+                                      root, no_local_schema, log_level, dry_run=False)
         # job = self.creator.create_job(project, type_, asset, 
         #     root, no_local_schema, log_level, dry_run=False)
 
@@ -65,5 +65,5 @@ class CreateJobTemplateTest(unittest.TestCase):
 
 suite = unittest.TestLoader().loadTestsFromTestCase(CreateJobTemplateTest)
 unittest.TextTestRunner(verbosity=3).run(suite)
-# if __name__ == '__main__':
-#     unittest.main()
+if __name__ == '__main__':
+    unittest.main()

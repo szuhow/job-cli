@@ -132,6 +132,7 @@ class LoggerFactory(object):
             for ll in ("INFO", "ERROR", "DEBUG"):
                 logger = self.__config["loggers"][ll].copy()
                 self.__config["loggers"][name] = logger
+                # print(self.__config["loggers"][name])
                 logging.config.dictConfig(self.__config)
         logger = getLogger(name)
         logger.setLevel(level)
