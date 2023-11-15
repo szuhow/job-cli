@@ -35,23 +35,42 @@
 ##########################################################################
 
 from commands.base import BaseSubCommand
-import click
+# import click
 
-@click.command(help='Create a new job project')
-@click.argument('project')
-@click.argument('type')
-@click.argument('asset')
-# @click.option('--type', 'asset_type', default='asset', help='Type of asset to create')
-@click.option('--log-level', default='INFO', help='Log level of subcommands (INFO | DEBUG) [default: INFO]')
-@click.option('--root', default='prefix', help='Overrides root directory (for debugging)')
-@click.option('--no-local-schema', is_flag=True, help='Disable saving/loading local copy of schema on "create"')
-@click.option('--fromdb', is_flag=True)
-@click.option('--sanitize', is_flag=True, help='Convert external names (from Shotgun i.e.)')
-def create(project, type, asset, log_level, root, no_local_schema, fromdb, sanitize):
-    print("create")
-    print(locals())
-    return CreateJobTemplate(cli_options=locals()).run()
+# @click.command(help='Create a new job project')
+# @click.argument('project')
+# @click.argument('type')
+# @click.argument('asset')
+# @click.option('--log-level', default='INFO', help='Log level of subcommands (INFO | DEBUG) [default: INFO]')
+# @click.option('--root', default='prefix', help='Overrides root directory (for debugging)')
+# @click.option('--no-local-schema', is_flag=True, help='Disable saving/loading local copy of schema on "create"')
+# @click.option('--fromdb', is_flag=True)
+# @click.option('--sanitize', is_flag=True, help='Convert external names (from Shotgun i.e.)')
+# def create(project, type, asset, log_level, root, no_local_schema, fromdb, sanitize):
+#     return CreateJobTemplate(cli_options=locals()).run()
     
+
+
+
+# def create(args):
+#     return CreateJobTemplate(cli_options=vars(args)).run()
+
+import argparse
+
+def get_parser():
+    parser = argparse.ArgumentParser(description='Create a new job project')
+    parser.add_argument('project', default=None, help='Project name')
+    parser.add_argument('type', nargs='?', default=None, help='Type of the project [optional]')
+    parser.add_argument('asset', nargs='?', help='Asset for the project [optional]')
+    parser.add_argument('--log-level', default='INFO', help='Log level of subcommands (INFO | DEBUG) [default: INFO]')
+    parser.add_argument('--root', default='prefix', help='Overrides root directory (for debugging)')
+    parser.add_argument('--no-local-schema', action='store_true', help='Disable saving/loading local copy of schema on "create"')
+    parser.add_argument('--fromdb', action='store_true')
+    parser.add_argument('--sanitize', action='store_true', help='Convert external names (from Shotgun i.e.)')
+    parser.set_defaults(command= lambda args: CreateJobTemplate(cli_options=vars(args)).run())
+    return parser
+
+
 
 
 
