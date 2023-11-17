@@ -2,11 +2,6 @@ from commands.base import BaseSubCommand
 import argparse
 
 
-
-
-
-
-
 class ReadShotgun(BaseSubCommand):
     """Sub command which finds Shotgun project."""
 

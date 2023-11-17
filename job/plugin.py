@@ -195,9 +195,9 @@ class PluginManager(object, metaclass=PluginRegister):
         plg = []
         for plugin in self.plugins:
             if plugin.type == type:
-                plugin.logger = LoggerFactory().get_logger(
-                    plugin.name, level=self.log_level
-                )
+                # plugin.logger = LoggerFactory().get_logger(
+                #     plugin.name, level=self.log_level
+                # )
                 plg += [plugin]
         return plg
 
@@ -213,9 +213,9 @@ class PluginManager(object, metaclass=PluginRegister):
 
         for plugin in self.plugins:
             if plugin.name == name:
-                print(plugin.name)
+                # print(plugin.name)
                 # FIXME: this is workaround...
-                plugin.logger = LoggerFactory().get_logger(name, level=self.log_level)
+                # plugin.logger = LoggerFactory().get_logger(name, level=self.log_level)
                 return plugin
         self.logger.exception("Can't find plugin %s", name)
         raise OSError
@@ -236,8 +236,8 @@ class PluginManager(object, metaclass=PluginRegister):
             if plugin_name in installed_plg_names:
                 plugin_instance = self.get_plugin_by_name(plugin_name)
                 # FIXME: this is workaround...
-                plugin_instance.logger = LoggerFactory().get_logger(
-                    plugin_name, level=self.log_level
-                )
+                # plugin_instance.logger = LoggerFactory().get_logger(
+                #     plugin_name, level=self.log_level
+                # )
                 return plugin_instance
         return None

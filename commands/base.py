@@ -1,3 +1,9 @@
+import logging
+from logging.handlers import RotatingFileHandler
+from os.path import expanduser, join, isdir
+from os import mkdir
+
+
 class BaseSubCommand(object):
     """A base command."""
 
@@ -8,6 +14,36 @@ class BaseSubCommand(object):
         self.args = args
         self.kwargs = kwargs
         self.cli_options = cli_options
+        self.logger = logging.getLogger(self.__class__.__name__)
+
+    def set_logger(self, level="DEBUG", filename="app.log"):
+        """Set up basic logging configuration."""
+        
+        
+        self.logger.setLevel(level)
+
+        # Create a console handler
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(level)
+
+        home = expanduser("~")
+        path = join(home, ".job")
+        if not isdir(path) and isdir(home):
+            mkdir(path)
+
+        path = join(path, filename)
+        # Create a file handler
+        file_handler = RotatingFileHandler(path)
+        file_handler.setLevel(level)
+
+        # Create a formatter and add it to the handlers
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        console_handler.setFormatter(formatter)
+        file_handler.setFormatter(formatter)
+
+        # Add the handlers to the logger
+        self.logger.addHandler(console_handler)
+        self.logger.addHandler(file_handler)
 
     def get_log_level_from_options(self):
         """ """

@@ -6,6 +6,10 @@ from pwd import getpwnam, getpwuid
 from getpass import getuser
 from subprocess import Popen, PIPE
 from job.utils import get_log_level_from_options
+import logging
+from logging.handlers import RotatingFileHandler
+from os.path import expanduser, join, isdir
+from os import mkdir
 # TODO: remove
 USE_SUDO = False
 
@@ -16,17 +20,55 @@ class LocalDevicePython(DeviceDriver, PluginManager):
     logger = None
 
     def __init__(self, log_level = INFO, **kwargs):
+        # get logger from PluginManager
+        super().__init__()
+
+        
+        # print(log_level)
+        # self.set_logger(level=log_level, filename=str(log_level) + ".log")
         name = self.__class__
-        # print(name)
-        # print(f"LocalDevicePython {kwargs}")
+
         self.kwargs = kwargs    
         from job.logger import LoggerFactory
-
+        print(self.logger)
         # if "log_level" in self.kwargs:
         #     self.log_level = self.kwargs["log_level"]
         name = self.__class__.__name__
-        print(f"Log level {log_level}")
-        self.logger = LoggerFactory().get_logger(name, level=log_level)
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.set_logger(level=log_level, filename=str(log_level) + ".log")
+       
+        # self.logger = LoggerFactory().get_logger(name, level=log_level)
+
+
+    def set_logger(self, level="DEBUG", filename="app.log"):
+        """Set up basic logging configuration."""
+        
+        
+        self.logger.setLevel(level)
+
+        # Create a console handler
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(level)
+
+        home = expanduser("~")
+        path = join(home, ".job")
+        if not isdir(path) and isdir(home):
+            mkdir(path)
+
+        path = join(path, filename)
+        # Create a file handler
+        file_handler = RotatingFileHandler(path)
+        file_handler.setLevel(level)
+
+        # Create a formatter and add it to the handlers
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        console_handler.setFormatter(formatter)
+        file_handler.setFormatter(formatter)
+
+        # Add the handlers to the logger
+        self.logger.addHandler(console_handler)
+        self.logger.addHandler(file_handler)
+
 
     def register_signals(self):
         return True

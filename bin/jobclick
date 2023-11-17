@@ -32,124 +32,22 @@
 #  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ##########################################################################
-# import sys
-# from os.path import realpath, dirname, join
 
-# Get root directory
-# job_root_path = dirname(realpath(__file__))
-# job_root_path = dirname(job_root_path)
-# sys.path = [job_root_path] + sys.path
-
-
-
-# @cli.command(help='Create a new job project')
-# @click.argument('project')
-# @click.option('--type', 'asset_type', default='asset', help='Type of asset to create')
-# @click.option('--log-level', default='INFO', help='Log level of subcommands (INFO | DEBUG) [default: INFO]')
-# @click.option('--root', default='prefix', help='Overrides root directory (for debugging)')
-# @click.option('--no-local-schema', is_flag=True, help='Disable saving/loading local copy of schema on "create"')
-# @click.option('--fromdb', is_flag=True)
-# @click.option('--sanitize', is_flag=True, help='Convert external names (from Shotgun i.e.)')
-# def create(project, asset_type, log_level, root, no_local_schema, fromdb, sanitize):
-#     pass
-
-# @cli.command(help='Set the job environment')
-# @click.argument('project', required=False)
-# @click.argument('asset_type', required=False)
-# @click.option('--rez', multiple=True)
-# @click.option('--log-level', default='INFO', help='Log level of subcommands (INFO | DEBUG) [default: INFO]')
-# @click.option('--root', default='prefix', help='Overrides root directory (for debugging)')
-# @click.option('--refresh', is_flag=True, help='Ignore existing job context, and recreate it from scratch.')
-# def set(project, asset_type, rez, log_level, root, refresh):
-#     pass
-
-# @cli.command(help='Archive a job project')
-# @click.argument('project')
-# def archive(project):
-#     pass
-
-
-
-# @cli.command(help='Write data to a job project')
-# @click.argument('project')
-# @click.argument('asset_type', required=False)
-# @click.argument('fields', nargs=-1)
-# @click.option('--log-level', default='INFO', help='Log level of subcommands (INFO | DEBUG) [default: INFO]')
-# def write(project, asset_type=None, fields=None, log_level=None):
-#     pass
-
-
-
-
-# import click
-# from commands import *
-# @click.group(help="CLI tool to manage full development cycle of projects")
-# def cli():
-#     pass
 import argparse
 import pkgutil
 import commands
-from inspect import getmembers, isclass
-# @cli.command(help='Help')
-# def help():
-#      for command in cli.commands.values():
-#         print_help_msg(command)
-
-
-
-    # for attr_name in dir(module):
-    #     attr = getattr(module, attr_name)
-    #     if isinstance(attr, click.Command):
-    #         cli.add_command(attr)
-            
-
-# def print_help_msg(command):
-
-#     with click.Context(command) as ctx:
-#         click.echo(command.get_help(ctx))
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
     for loader, module_name, is_pkg in pkgutil.iter_modules(commands.__path__):
         module = loader.find_module(module_name).load_module(module_name)
-        # from commands.base import BaseSubCommand
-        # candidates = [cls[1] for cls in getmembers(module, isclass)]
-        # # print(candidates)
-        # # for cls in candidates:
-        # #     if issubclass(cls, BaseSubCommand)  and cls != BaseSubCommand:
-        # #         print(cls)
-        # subcommand = [cls for cls in candidates if issubclass(cls, BaseSubCommand) and cls != BaseSubCommand]
-        # print(subcommand)
-        # print class from module that inherit from BaseSubCommand
-        # print(getmembers(module, isclass))
-       
-        #          
-        # print parent class of module
-        # for k, v in options.items():
-        #         if not hasattr(commands, k) or not v:
-        #         continue
-        #         # add external_commands to the commands
-
-        #         module = getattr(commands, k) 
-        #         print("Module found %s with " % module)
-        #         candidates = [cls[1] for cls in getmembers(module, isclass)]
-        #         # We are only interested in classes derived from Base:
-        #        
-        #         print("Subcommand found %s" % subcommand)
-        #         return subcommand
-        #     return
-
-        if hasattr(module, 'get_parser'):
-            subparser = module.get_parser()
+        if hasattr(module, 'setup_cli'):
+            subparser = module.setup_cli()
             command_parser = subparsers.add_parser(module_name, parents=[subparser], add_help=False)
 
     args = parser.parse_args()
-    print(args)
     args.command(args) 
-
-
 
 
 

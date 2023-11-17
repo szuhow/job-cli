@@ -33,19 +33,6 @@
 ##########################################################################
 
 from commands.base import BaseSubCommand
-import argparse
-def get_parser():
-    parser = argparse.ArgumentParser(description='Set the job environment')
-    parser.add_argument('project', nargs='?', default=None, help='Project name [optional]')
-    parser.add_argument('type', nargs='?', default=None, help='Type [optional]')
-    parser.add_argument('asset', nargs='?', default=None, help='Asset [optional]')
-    parser.add_argument('--rez', nargs='*', default=[], help='Rez')
-    parser.add_argument('--log-level', default='INFO', help='Log level of subcommands (INFO | DEBUG) [default: INFO]')
-    parser.add_argument('--root', default='prefix', help='Overrides root directory (for debugging)')
-    parser.add_argument('--no-local-schema', action='store_true', help='Disable saving/loading local copy of schema on "create"')
-    parser.add_argument('--refresh', action='store_true', help='Ignore existing job context, and recreate it from scratch.')
-    parser.set_defaults(command= lambda args: SetEnvironment(cli_options=vars(args)).run())
-    return parser
 
 
 class NoJobEnvironmentBackend(Exception):
@@ -110,15 +97,13 @@ class JobEnvironment(object):
         from json import dumps
 
         self.cli_options = cli_options
-        serializable_options = {k: v for k, v in self.cli_options.items() if not callable(v)}
         print("CLI options: %s" % self.cli_options)
-        self.job_current = self.cli_options["project"]
-        self.job_asset_type = self.cli_options["type"]
-        self.job_asset_name = self.cli_options["asset"]
+        self.job_current = self.cli_options["PROJECT"]
+        self.job_asset_type = self.cli_options["TYPE"]
+        self.job_asset_name = self.cli_options["ASSET"]
 
-        print("Job cli root: %s" % self.cli_options["root"])
-        if self.cli_options["root"]:
-            self.root = self.cli_options["root"]
+        if self.cli_options["--root"]:
+            self.root = self.cli_options["--root"]
         else:
             self.root = None
 
@@ -135,11 +120,11 @@ class JobEnvironment(object):
         history_folder = join(self.package_path, self.job_current)
         if not isdir(history_folder):
             mkdir(history_folder)
-       
+
         with open(join(history_folder, "job.history"), "w") as file:
-            file.write(dumps(serializable_options))
+            file.write(dumps(self.cli_options))
         with open(join(self.package_path, "job.history"), "w") as file:
-            file.write(dumps(serializable_options))
+            file.write(dumps(self.cli_options))
 
     def find_job_context(self, job_template=None):
         """Using underlying context creator find if current
@@ -179,7 +164,7 @@ class JobEnvironment(object):
             kwargs["root"] = self.root
 
         job_template = JobTemplate(**kwargs)
-        if not self.cli_options["no_local_schema"]:
+        if not self.cli_options["--no-local-schema"]:
             local_schema_paths = job_template.get_local_schema_path()
             job_template.load_schemas(local_schema_paths)
             super(JobTemplate, job_template).__init__(
@@ -226,10 +211,10 @@ class JobEnvironment(object):
         from os.path import isfile, join
         from json import load
 
-        if not cli_options["project"]:
+        if not cli_options["PROJECT"]:
             history_folder = self.package_path
         else:
-            history_folder = join(self.package_path, cli_options["project"])
+            history_folder = join(self.package_path, cli_options["PROJECT"])
 
         history_file = join(history_folder, "job.history")
 
@@ -257,18 +242,18 @@ class SetEnvironment(BaseSubCommand):
         from getpass import getuser
         from job.logger import LoggerFactory
 
-        log_level = self.cli_options["log_level"]
+        log_level = self.cli_options["--log-level"]
         self.logger = LoggerFactory().get_logger("SetEnvironment", level=log_level)
         job = JobEnvironment(log_level=log_level)
 
         # Lack of PROJECT or ASSET specification triggers reading history file
         if None in (
-            self.cli_options["project"],
-            self.cli_options["type"],
-            self.cli_options["asset"],
+            self.cli_options["PROJECT"],
+            self.cli_options["TYPE"],
+            self.cli_options["ASSET"],
         ):
             # Can't deal with both missing args and refreshing...
-            if self.cli_options["refresh"]:
+            if self.cli_options["--refresh"]:
                 self.logger.exception(
                     "Can't set with --refresh AND missing arguments. "
                 )
@@ -286,13 +271,12 @@ class SetEnvironment(BaseSubCommand):
                 self.logger.warning(
                     "To avoid this behavior, try: job set PROJECT TYPE ASSET --refresh"
                 )
-                self.cli_options["project"] = "sandbox"
-                self.cli_options["type"] = "user"
-                self.cli_options["asset"] = getuser()
+                self.cli_options["PROJECT"] = "sandbox"
+                self.cli_options["TYPE"] = "user"
+                self.cli_options["ASSET"] = getuser()
 
         # Postponed initialization:
-        serializable_options = {k: v for k, v in self.cli_options.items() if not callable(v)}
-        job.init(serializable_options)
+        job.init(self.cli_options)
 
         # Lets check if we can find project in a first place...
         project_path = job.job_template.expand_path_template()
@@ -303,17 +287,17 @@ class SetEnvironment(BaseSubCommand):
 
         # Read additional packages from command line:
         rez_package_names = []
-        if self.cli_options["rez"]:
-            rez_package_names += self.cli_options["rez"]
+        if self.cli_options["--rez"]:
+            rez_package_names += self.cli_options["--rez"]
 
         # ...some might be also added in job.options:
         if "--rez" in job.job_template.job_options:
-            rez_package_names += job.job_template.job_options["rez"]
+            rez_package_names += job.job_template.job_options["--rez"]
 
         ok = job.find_job_context()
 
         # Either this is first set to this asset or we want to refresh its definition:
-        if not ok or self.cli_options["refresh"]:
+        if not ok or self.cli_options["--refresh"]:
             context_name, package_name, package_version = job.backend.context_name()
             self.logger.warning("Not package %s found... creating it.", package_name)
             ok = job.backend.create_context(

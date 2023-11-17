@@ -6,7 +6,7 @@ class samplePlugin(PluginManager):
     type = PluginType.Sample
 
     def register_signals(self):
-        self.logger.debug("%s registering as %s", self.name, self.type)
+        # self.logger.debug("%s registering as %s", self.name, self.type)
         return True
 
     def __call__(self):

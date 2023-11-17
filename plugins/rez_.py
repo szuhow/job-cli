@@ -86,9 +86,11 @@ class RezEnvironment(PluginManager):
         """Find REZ. We might consider making it citizense of job-cli."""
 
         if REZ_FOUND:
-            self.logger.debug("%s registering as %s", self.name, self.type)
+            pass
+            # self.logger.debug("%s registering as %s", self.name, self.type)
         else:
-            self.logger.exception("Cannot import rez. Rez based plugins won't work, %s")
+            pass
+            # self.logger.exception("Cannot import rez. Rez based plugins won't work, %s")
         return REZ_FOUND
 
     def find_context(self, job_template=None, version=None, path=None):

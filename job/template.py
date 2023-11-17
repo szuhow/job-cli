@@ -3,8 +3,11 @@ import stat
 import json
 import abc
 import logging
-
-
+import logging
+from logging.handlers import RotatingFileHandler
+from os.path import expanduser, join, isdir
+from os import mkdir
+from demeter.project import Manager
 # This will actually install optional plugins
 # ... and crash on any error. We may hide it inside a class
 # and catch exception, log etc. This should not hurt us,
@@ -54,243 +57,254 @@ class LocationTemplate(dict):
     provided by Job class and a 'obj', which is a name allowing to initilize it with
     selected template.
     """
-
-    schema = {}
-    parent_template = None
-    schema_type_name = None
-    child_templates = []
-    # TODO: use config for this?
-    JOB_TEMPLATE_PATH_ENV = "JOB_TEMPLATE_PATH"
-    SCHEMA_FILE_EXTENSION = "schema"
-    OPTION_FILE_EXTENSION = "options"
-    JOB_PATH_POSTFIX = ["schema", ".job"]
-    # TODO: We should move here handlers for over internal storage
+    
+    
+    # # albo lepiej
+    # paths =manager.findall_by_type("directory")
+    # schema = {}
+    # parent_template = None
+    # schema_type_name = None
+    # child_templates = []
+    # # TODO: use config for this?
+    # JOB_TEMPLATE_PATH_ENV = "JOB_TEMPLATE_PATH"
+    # SCHEMA_FILE_EXTENSION = "schema"
+    # OPTION_FILE_EXTENSION = "options"
+    # JOB_PATH_POSTFIX = ["schema", ".job"]
+    # # TODO: We should move here handlers for over internal storage
     __preferences = None
 
-    def __init__(self, schema=None, schema_type_name=None, parent=None, **kwargs):
-        if schema and schema_type_name and schema_type_name in schema:
-            super(LocationTemplate, self).__init__(schema[schema_type_name])
+    def __init__(self,  **kwargs):
 
-        self.parent_template = parent
-        self.schema_type_name = schema_type_name
+
+   
 
         # FIXME: This polutes schema as we save copies of self down the stream
         # This we should sanitaze kwargs here, so keys not present in schema
         # are saved separetly. We could also do it on saving.
         for k, v in kwargs.items():
-            print(f"Setting {k} to {v}")
+            # print(f"Setting {k} to {v}")
             self[k] = v
+            print(f"Setting {k} to {v}")
 
-    def __getitem__(self, key):
-        """LocationTemplates are nested inside each othter. This custom getter
-        looks for a key locally, and if not succeed, looks up the parents
-        recursively.
+    # def __getitem__(self, key):
+    #     """LocationTemplates are nested inside each othter. This custom getter
+    #     looks for a key locally, and if not succeed, looks up the parents
+    #     recursively.
 
-        NOTE: 'None' value is treated as if a key wasn't present,
-        whereas anything else evaluated by Python to 'False'
-        is interpreted as correct value and returned.
-        """
-        if key in self.keys():
-            value = super(LocationTemplate, self).__getitem__(key)
-            # See note above:
-            if value == None and self.parent_template:
-                return self.parent_template[key]
-            return value
-        else:
-            # We are at a root level, and still no value...
-            if self.parent_template == None:
-                raise f"{KeyError}, No key found in self or parents: %s"
-            return self.parent_template[key]
+    #     NOTE: 'None' value is treated as if a key wasn't present,
+    #     whereas anything else evaluated by Python to 'False'
+    #     is interpreted as correct value and returned.
+    #     """
+    #     if key in self.keys():
+    #         value = super(LocationTemplate, self).__getitem__(key)
+    #         # See note above:
+    #         if value == None and self.parent_template:
+    #             return self.parent_template[key]
+    #         return value
+    #     else:
+    #         # We are at a root level, and still no value...
+    #         if self.parent_template == None:
+    #             raise f"{KeyError}, No key found in self or parents: %s"
+    #         return self.parent_template[key]
 
-    def get_root_template(self):
-        """Return Job template which is a root parent."""
-        if self.parent_template:
-            return self.parent_template.get_root_template()
-        return self
+    # def get_root_template(self):
+    #     """Return Job template which is a root parent."""
+    #     if self.parent_template:
+    #         return self.parent_template.get_root_template()
+    #     return self
 
-    def expand_path_template(self, template=None):
-        """This should be replaced with more elaboreted and safe template renderer."""
-        from os.path import join
+    # def expand_path_template(self, template=None):
+    #     """This should be replaced with more elaboreted and safe template renderer."""
+    #     from os.path import join
 
-        if not template:
-            # This will raise an exception if
-            # no path_template has been found here or up.
-            template = self["path_template"]
+    #     if not template:
+    #         # This will raise an exception if
+    #         # no path_template has been found here or up.
+    #         template = self["path_template"]
 
-        # FIXME: This is temporary until we move on to better path templates!
-        if type(template) in (list, tuple):
-            consists = template
-        elif isinstance(template, str):
-            consists = template.split("/")
-        else:
-            raise EnvironmentError
+    #     # FIXME: This is temporary until we move on to better path templates!
+    #     if type(template) in (list, tuple):
+    #         consists = template
+    #     elif isinstance(template, str):
+    #         consists = template.split("/")
+    #     else:
+    #         raise EnvironmentError
 
-        expanded_directores = []
+    #     expanded_directores = []
 
-        for element in consists:
-            # all but first character is valid
-            keyword = element[1:]
-            if element.startswith("@"):
-                value = self[keyword]
-            # We support also env var. which is probably bad idea...
-            elif element.startswith("$"):
-                value = os.getenv(keyword, None)
-            else:
-                value = element
+    #     for element in consists:
+    #         # all but first character is valid
+    #         keyword = element[1:]
+    #         if element.startswith("@"):
+    #             value = self[keyword]
+    #         # We support also env var. which is probably bad idea...
+    #         elif element.startswith("$"):
+    #             value = os.getenv(keyword, None)
+    #         else:
+    #             value = element
 
-            if not value:
-                self.logger.exception(
-                    "Couldn't resolve '%s' inside template: '%s'", element, template
-                )
-                raise EnvironmentError
+    #         if not value:
+    #             self.logger.exception(
+    #                 "Couldn't resolve '%s' inside template: '%s'", element, template
+    #             )
+    #             raise EnvironmentError
 
-            expanded_directores += [value]
+    #         expanded_directores += [value]
 
-        path = join(*expanded_directores)
-        return path
+    #     path = join(*expanded_directores)
+    #     return path
 
-    def extend_schema_with_adhoc_definition(self, schema_dict):
-        """LocationTemplate could be provided as simple sub_dirs
-        inline. This should be used only for basic templates.
-        By default all setting will be inherited from parent
-        template. User can override it with "options" field
-        inside inline template dictionary.
+    # def extend_schema_with_adhoc_definition(self, schema_dict):
+    #     """LocationTemplate could be provided as simple sub_dirs
+    #     inline. This should be used only for basic templates.
+    #     By default all setting will be inherited from parent
+    #     template. User can override it with "options" field
+    #     inside inline template dictionary.
 
-        Params: schema dictonary with three keys:
-        { "name"   : location name
-          "type"   : "location" for inline temp. or "template" for file based.
-          "options": {} dict with overritten settings.
-        }
-        """
+    #     Params: schema dictonary with three keys:
+    #     { "name"   : location name
+    #       "type"   : "location" for inline temp. or "template" for file based.
+    #       "options": {} dict with overritten settings.
+    #     }
+    #     """
 
-        schema = LocationTemplate(schema={}, schema_type_name=None, parent=self)
-        schema["sub_dirs"] = []
-        if schema_dict["options"]:
-            for k, v in schema_dict["options"].items():
-                schema[k] = v
-        schema["names"] = [schema_dict["name"]]
-        self.schema[schema_dict["name"]] = schema
+    #     schema = LocationTemplate(schema={}, schema_type_name=None, parent=self)
+    #     schema["sub_dirs"] = []
+    #     if schema_dict["options"]:
+    #         for k, v in schema_dict["options"].items():
+    #             schema[k] = v
+    #     schema["names"] = [schema_dict["name"]]
+    #     self.schema[schema_dict["name"]] = schema
 
-        return True
+    #     return True
 
     def render(self, _root=None, recursive=True, parent=None, clear_storage=True):
-        """Creates recursively LocationTemplate objects, resolving
-        overrides and expanding variables.
+        manager = Manager({'project': 'sandbox', 'episode': '$EP', 'group': 'user', 'asset': 'symek'})
+        # targets = manager.get_all_directories()
+        targets = manager.dry_load(str(manager.project)).get_all_directories()
+        print(f"Targets: {targets}")
+        # manager = Manager(x,y,z...)
+        # paths = manager.get_all_directories()
+        # # albo lepiej
+        # paths =manager.findall_by_type("directory")
 
-        Returns: Dictonary with all paths as a keys, and coresponding
-        templetes as values to use this information down the stream.
-        {'/some/path': LocationTemplate(), ...}
-        """
+    #     """Creates recursively LocationTemplate objects, resolving
+    #     overrides and expanding variables.
 
-        def valid_variables_expantion(path):
-            """We need to make sure all var. were expanded, and raise
-            an exception if not.
-            """
-            try:
-                if "$" in path:
-                    raise EnvironmentError(path)
-            except EnvironmentError as e:
-                self.get_root_template().logger.exception("Wrong expansion %s", e)
-                return False
-            return True
+    #     Returns: Dictonary with all paths as a keys, and coresponding
+    #     templetes as values to use this information down the stream.
+    #     {'/some/path': LocationTemplate(), ...}
+    #     """
 
-        from os.path import join, expandvars
-        from sys import exit
+    #     def valid_variables_expantion(path):
+    #         """We need to make sure all var. were expanded, and raise
+    #         an exception if not.
+    #         """
+    #         try:
+    #             if "$" in path:
+    #                 raise EnvironmentError(path)
+    #         except EnvironmentError as e:
+    #             self.get_root_template().logger.exception("Wrong expansion %s", e)
+    #             return False
+    #         return True
 
-        targets = OrderedDict()
+    #     from os.path import join, expandvars
+    #     from sys import exit
 
-        if clear_storage:
-            self.child_templates = []
+    #     targets = OrderedDict()
 
-        # If root wasn't provided take it from self or
-        # regenerate it with path_template if avaible.
-        if not _root or self["is_link"]:
-            template = self["path_template"]
-            root = self.expand_path_template(template)
-        else:
-            root = _root
+    #     if clear_storage:
+    #         self.child_templates = []
 
-        # print self.expand_path_template(self['link_target'])
-        # Add paths to targets dictionary
-        # We expand possible env variables and raise on error.
-        for name in self["names"]:
-            path = join(root, name)
-            path = expandvars(path)
-            if not valid_variables_expantion(path):
+    #     # If root wasn't provided take it from self or
+    #     # regenerate it with path_template if avaible.
+    #     if not _root or self["is_link"]:
+    #         template = self["path_template"]
+    #         root = self.expand_path_template(template)
+    #     else:
+    #         root = _root
 
-                self.get_root_template().logger.info("Job has to quit due to errors...")
-                exit()
-            targets[path] = self
+    #     # print self.expand_path_template(self['link_target'])
+    #     # Add paths to targets dictionary
+    #     # We expand possible env variables and raise on error.
+    #     for name in self["names"]:
+    #         path = join(root, name)
+    #         path = expandvars(path)
+    #         if not valid_variables_expantion(path):
 
-        if not recursive:
-            return
+    #             self.get_root_template().logger.info("Job has to quit due to errors...")
+    #             exit()
+    #         targets[path] = self
 
-        for sub_template in self["sub_dirs"]:
-            # Although the template was specified in a sub_dir
-            # its definition can't be found, so we omitt it..
-            if (
-                not sub_template["name"] in self.schema.keys()
-                and sub_template["type"] == "template"
-            ):
-                # print "Omitting absent template."
-                continue
+    #     if not recursive:
+    #         return
 
-            # Expand schema shop (self.schema) inplace specification.
-            if sub_template["type"] == "location":
-                self.extend_schema_with_adhoc_definition(sub_template)
-                # print "Expanding schema with %s" % sub_template
+    #     for sub_template in self["sub_dirs"]:
+    #         # Although the template was specified in a sub_dir
+    #         # its definition can't be found, so we omitt it..
+    #         if (
+    #             not sub_template["name"] in self.schema.keys()
+    #             and sub_template["type"] == "template"
+    #         ):
+    #             # print "Omitting absent template."
+    #             continue
 
-            # Create subtemplate and process...
-            location = LocationTemplate(
-                schema=self.schema, schema_type_name=sub_template["name"], parent=self
-            )
+    #         # Expand schema shop (self.schema) inplace specification.
+    #         if sub_template["type"] == "location":
+    #             self.extend_schema_with_adhoc_definition(sub_template)
+    #             # print "Expanding schema with %s" % sub_template
 
-            self.child_templates += [location]
-            subtargets = location.render(path, parent=self)
+    #         # Create subtemplate and process...
+    #         location = LocationTemplate(
+    #             schema=self.schema, schema_type_name=sub_template["name"], parent=self
+    #         )
 
-            # FIXME: This shouldn't happen at all
-            for tgk in subtargets:
-                if tgk not in targets.keys():
-                    targets[tgk] = subtargets[tgk]
+    #         self.child_templates += [location]
+    #         subtargets = location.render(path, parent=self)
 
-        return targets
+    #         # FIXME: This shouldn't happen at all
+    #         for tgk in subtargets:
+    #             if tgk not in targets.keys():
+    #                 targets[tgk] = subtargets[tgk]
 
-    def __repr__(self):
-        """Pretty-like print with json rastezier."""
-        return json.dumps(self, indent=4, check_circular=False)
+    #     return targets
 
-    def load_schemas(self, path, schema_shop={}):
-        """Load json schemas (*.schema) files defining LocationTemplate."""
-        from glob import glob
-        import job.schemas
+    # def __repr__(self):
+    #     """Pretty-like print with json rastezier."""
+    #     return json.dumps(self, indent=4, check_circular=False)
 
-        schema_location = os.path.join(path, "*.%s" % self.SCHEMA_FILE_EXTENSION)
-        schema_files = glob(schema_location)
-        self.logger.debug("Schema files found: %s", schema_files)
+    # def load_schemas(self, path, schema_shop={}):
+    #     """Load json schemas (*.schema) files defining LocationTemplate."""
+    #     from glob import glob
+    #     import job.schemas
 
-        for file in schema_files:
-            with open(file) as file_object:
-                candidate = json.load(file_object)
+    #     schema_location = os.path.join(path, "*.%s" % self.SCHEMA_FILE_EXTENSION)
+    #     schema_files = glob(schema_location)
+    #     self.logger.debug("Schema files found: %s", schema_files)
 
-                if not "version" in candidate:
-                    raise KeyError(file)
+    #     for file in schema_files:
+    #         with open(file) as file_object:
+    #             candidate = json.load(file_object)
 
-                schema_version = candidate["version"]
-                schema_object = job.schemas.Factory(log_level=self.logger.level).find(
-                    candidate, schema_version
-                )
+    #             if not "version" in candidate:
+    #                 raise KeyError(file)
 
-                if not schema_object:
-                    self.logger.warning(
-                        "Can't find parser for current schema: %s, %s",
-                        file,
-                        schema_version,
-                    )
+    #             schema_version = candidate["version"]
+    #             schema_object = job.schemas.Factory(log_level=self.logger.level).find(
+    #                 candidate, schema_version
+    #             )
 
-                name = os.path.split(file)[1]
-                name = os.path.splitext(name)[0]
-                schema_shop[name] = schema_object  # candidate #change make
-        return schema_shop
+    #             if not schema_object:
+    #                 self.logger.warning(
+    #                     "Can't find parser for current schema: %s, %s",
+    #                     file,
+    #                     schema_version,
+    #                 )
+
+    #             name = os.path.split(file)[1]
+    #             name = os.path.splitext(name)[0]
+    #             schema_shop[name] = schema_object  # candidate #change make
+    #     return schema_shop
 
 
 class JobTemplate(LocationTemplate):
@@ -316,8 +330,9 @@ class JobTemplate(LocationTemplate):
         from os.path import join, split, realpath, dirname
         from job.logger import LoggerFactory
         name = self.__class__.__name__
-        self.logger = LoggerFactory().get_logger(name, level=log_level)
-
+        # self.logger = LoggerFactory().get_logger(name, level=log_level)
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.set_logger(level=log_level, filename=str(log_level) + ".log")
         schema_locations = [dirname(realpath(__file__))]
 
         # JOB_TEMPLATE_PATH_ENV may store store additional locations of schema folders.
@@ -366,51 +381,80 @@ class JobTemplate(LocationTemplate):
                 "Can't get options for a job! %s", self.job_options_reader.error
             )
 
-    def get_local_schema_path(self, template=""):
-        """Once we know where to look for we may want to refer to
-        local schema copy if the job/group/asset, as they might
-        by edited independly from defualt schemas or any other
-        present in environ varible JOB_TEMPLATE_PATH.
+    def set_logger(self, level="DEBUG", filename="app.log"):
+        """Set up basic logging configuration."""
+        
+        
+        self.logger.setLevel(level)
 
-        Parms : job - object to retrieve local_schema_path templates.
-        Return: list of additional schema locations.
-        """
-        if template and template in self["local_schema_path"].keys():
-            return self.expand_path_template(self["local_schema_path"][template])
+        # Create a console handler
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(level)
 
-        # This is ugly, should we move it to Job()?
-        job_schema = self["local_schema_path"]["job"]
-        group_schema = self["local_schema_path"]["group"]
-        asset_schema = self["local_schema_path"]["asset"]
+        home = expanduser("~")
+        path = join(home, ".job")
+        if not isdir(path) and isdir(home):
+            mkdir(path)
 
-        local_schema_path = [self.expand_path_template(template=job_schema)]
-        local_schema_path += [self.expand_path_template(template=group_schema)]
-        local_schema_path += [self.expand_path_template(template=asset_schema)]
+        path = join(path, filename)
+        # Create a file handler
+        file_handler = RotatingFileHandler(path)
+        file_handler.setLevel(level)
 
-        return local_schema_path
+        # Create a formatter and add it to the handlers
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        console_handler.setFormatter(formatter)
+        file_handler.setFormatter(formatter)
 
-    def load_schemas(self, schema_locations):
-        """Loads schemas from files found in number of schema_locations/postix[s]
-        as defined in JOB_PATH_POSTFIX global."""
-        from os.path import join
+        # Add the handlers to the logger
+        self.logger.addHandler(console_handler)
+        self.logger.addHandler(file_handler)
 
-        for directory in schema_locations:
-            for postfix in self.JOB_PATH_POSTFIX:
-                schemas = super(JobTemplate, self).load_schemas(
-                    join(directory, postfix)
-                )
-                for k, v in schemas.items():
-                    self.schema[k] = v
-        return True
+    # def get_local_schema_path(self, template=""):
+    #     """Once we know where to look for we may want to refer to
+    #     local schema copy if the job/group/asset, as they might
+    #     by edited independly from defualt schemas or any other
+    #     present in environ varible JOB_TEMPLATE_PATH.
 
-    def dump_local_templates(self, schema_key="job", postfix=".job"):
-        """Saves all schemes (hopefully) with modifications inside
-        path_template/postfix.
+    #     Parms : job - object to retrieve local_schema_path templates.
+    #     Return: list of additional schema locations.
+    #     """
+    #     if template and template in self["local_schema_path"].keys():
+    #         return self.expand_path_template(self["local_schema_path"][template])
 
-        Params:
-            schema_key: name of the path template used to generate prefix
-            postfix:    subfolder to save *.json with schemas (usually .schema)
-        """
+    #     # This is ugly, should we move it to Job()?
+    #     job_schema = self["local_schema_path"]["job"]
+    #     group_schema = self["local_schema_path"]["group"]
+    #     asset_schema = self["local_schema_path"]["asset"]
+
+    #     local_schema_path = [self.expand_path_template(template=job_schema)]
+    #     local_schema_path += [self.expand_path_template(template=group_schema)]
+    #     local_schema_path += [self.expand_path_template(template=asset_schema)]
+
+    #     return local_schema_path
+
+    # def load_schemas(self, schema_locations):
+    #     """Loads schemas from files found in number of schema_locations/postix[s]
+    #     as defined in JOB_PATH_POSTFIX global."""
+    #     from os.path import join
+
+    #     for directory in schema_locations:
+    #         for postfix in self.JOB_PATH_POSTFIX:
+    #             schemas = super(JobTemplate, self).load_schemas(
+    #                 join(directory, postfix)
+    #             )
+    #             for k, v in schemas.items():
+    #                 self.schema[k] = v
+    #     return True
+
+    # def dump_local_templates(self, schema_key="job", postfix=".job"):
+    #     """Saves all schemes (hopefully) with modifications inside
+    #     path_template/postfix.
+
+    #     Params:
+    #         schema_key: name of the path template used to generate prefix
+    #         postfix:    subfolder to save *.json with schemas (usually .schema)
+    #     """
 
         def dumps_recursive(obj, objs, exclude_names={}):
             """Puts strings containing json ready dicts recursively into obj."""
@@ -437,11 +481,12 @@ class JobTemplate(LocationTemplate):
         # TODO: Should we save schema' sources or recreate schames from objects?
         # Clear storage before rendering, so we make sure all possible changes in templates
         # (life objects opposite to shemas which are stored on disk.) will take effect.
-        from tempfile import NamedTemporaryFile
+        # from tempfile import NamedTemporaryFile
 
         tmpl_objects = {}
         exclude_inlines = []
-        targets = self.render(clear_storage=True).values()
+        targets = self.render(clear_storage=True)
+        print(f"Targets: {targets}")
         # print(f"Targets: {targets}")
         # FIXME: We need to keep track of inline templates... dirty.
         for tmpl in targets:
@@ -450,8 +495,8 @@ class JobTemplate(LocationTemplate):
                 if inline["type"] == "location":
                     exclude_inlines += [inline["name"]]
 
-        # Local schemas path are defined in project's schema
-        # and are selected here among many provided by key name:
+        # # Local schemas path are defined in project's schema
+        # # and are selected here among many provided by key name:
         local_schema_template = self["local_schema_path"][schema_key]
 
         prefix_path = self.expand_path_template(template=local_schema_template)
@@ -464,64 +509,64 @@ class JobTemplate(LocationTemplate):
         # also, should we conver all os.path functionality!?
         prefered_devices = self.__preferences["plugin"]["DeviceDriver"]
         device = self.plg_manager.get_first_maching_plugin(prefered_devices)
-        print(f"Device: {device}")
+        # print(f"Device: {device}")
         if not device:
             self.logger.exception("Can't find prefered device %s", prefered_devices)
             raise IOError
 
-        # FIXME: This shouldn't be here:
-        if not os.path.isdir(prefix_path):
-            self.logger.warning("Schema location doesn't exists! %s", prefix_path)
-            try:
-                device.make_dir(prefix_path)
-                self.logger.info("Making local schema location %s", prefix_path)
-            except:
-                self.logger.exception("Can't make %s", prefix_path)
+        # # FIXME: This shouldn't be here:
+        # if not os.path.isdir(prefix_path):
+        #     self.logger.warning("Schema location doesn't exists! %s", prefix_path)
+        #     try:
+        #         device.make_dir(prefix_path)
+        #         self.logger.info("Making local schema location %s", prefix_path)
+        #     except:
+        #         self.logger.exception("Can't make %s", prefix_path)
 
-        # Patch schema with local settings:
-        self.schema[self.schema_type_name] = patch_local_schema(
-            self.schema[self.schema_type_name], self
-        )
+        # # Patch schema with local settings:
+        # self.schema[self.schema_type_name] = patch_local_schema(
+        #     self.schema[self.schema_type_name], self
+        # )
 
-        # get json-strings recursively:
-        dumps_recursive(self, tmpl_objects, exclude_names=exclude_inlines)
+        # # get json-strings recursively:
+        # dumps_recursive(self, tmpl_objects, exclude_names=exclude_inlines)
 
-        for schema in tmpl_objects:
-            destination_file = os.path.join(
-                prefix_path, schema + ".%s" % self.SCHEMA_FILE_EXTENSION
-            )
-            # TODO: use DeviceManager for this.
-            with NamedTemporaryFile() as file:
-                file.write(tmpl_objects[schema].encode("utf-8"))
-                file.flush()
-                device.copy_file(file.name, destination_file)
-                self.logger.debug("Saving schema: %s", destination_file)
+        # for schema in tmpl_objects:
+        #     destination_file = os.path.join(
+        #         prefix_path, schema + ".%s" % self.SCHEMA_FILE_EXTENSION
+        #     )
+        #     # TODO: use DeviceManager for this.
+        #     with NamedTemporaryFile() as file:
+        #         file.write(tmpl_objects[schema].encode("utf-8"))
+        #         file.flush()
+        #         device.copy_file(file.name, destination_file)
+        #         self.logger.debug("Saving schema: %s", destination_file)
 
-    def exists(self, job_template=None):
-        """Check if project defined by job_template exists in a path
-        using preferenced device plugin.
-        """
-        prefered_devices = self.__preferences["plugin"]["DeviceDriver"]
-        device = self.plg_manager.get_first_maching_plugin(prefered_devices)
+    # def exists(self, job_template=None):
+    #     """Check if project defined by job_template exists in a path
+    #     using preferenced device plugin.
+    #     """
+    #     prefered_devices = self.__preferences["plugin"]["DeviceDriver"]
+    #     device = self.plg_manager.get_first_maching_plugin(prefered_devices)
 
-        if not device:
-            self.logger.exception("Can't find prefered device %s", prefered_devices)
-            raise IOError
-        device.logger.debug("Selecting device driver %s", device)
+    #     if not device:
+    #         self.logger.exception("Can't find prefered device %s", prefered_devices)
+    #         raise IOError
+    #     device.logger.debug("Selecting device driver %s", device)
 
-        if not job_template:
-            job_template = self
+    #     if not job_template:
+    #         job_template = self
 
-        project_path = job_template.expand_path_template()
-        local_templ = job_template.get_local_schema_path(template="job")
+    #     project_path = job_template.expand_path_template()
+    #     local_templ = job_template.get_local_schema_path(template="job")
 
-        if device.is_dir(project_path) and device.is_dir(local_templ):
-            return True
-        return False
+    #     if device.is_dir(project_path) and device.is_dir(local_templ):
+    #         return True
+    #     return False
 
     def create(self, targets=None):
         """TODO: This is only fo testing purposes."""
-
+       
         def create_link(path, targets):
             """Create external or interal links between folders.
 
@@ -559,6 +604,7 @@ class JobTemplate(LocationTemplate):
             return True
 
         prefered_devices = self.__preferences["plugin"]["DeviceDriver"]
+        print(f"Prefered devices: {prefered_devices}")
         device = self.plg_manager.get_first_maching_plugin(prefered_devices)
         if not device:
             self.logger.exception("Can't find prefered device %s", prefered_devices)
@@ -568,6 +614,8 @@ class JobTemplate(LocationTemplate):
 
         if not targets:
             targets = self.render()
+        print("Creating job...")
+        print(f"Targets: {targets}")
 
         # Should we check what's commig here?
         for key in targets:
@@ -575,12 +623,12 @@ class JobTemplate(LocationTemplate):
                 targets[key], LocationTemplate
             )
 
-        for path in targets:
-            device.make_dir(path)
-            create_link(path, targets)
+        # for path in targets:
+        #     device.make_dir(path)
+        #     create_link(path, targets)
 
-            # Commented as lack of attrs
-            # Cosmetics:
-            device.remove_write_permissions(path)
-            device.add_write_permissions(path, **targets[path]['permission'])
-            device.set_ownership(path, **targets[path]['ownership'])
+        #     # Commented as lack of attrs
+        #     # Cosmetics:
+        #     device.remove_write_permissions(path)
+        #     device.add_write_permissions(path, **targets[path]['permission'])
+        #     device.set_ownership(path, **targets[path]['ownership'])

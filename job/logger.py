@@ -58,8 +58,37 @@ DEFAULT_LOGGER_CONFIG = """ {
     }  
 }"""
 
-from collections.abc import MutableMapping
 
+# DEFAULT_LOGGER_CONFIG = {
+#     "version": 1,
+#     "formatters": {
+#         "simple": {
+#             "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+#         }
+#     },
+#     "handlers": {
+#         "console": {
+#             "class": "logging.StreamHandler",
+#             "level": "DEBUG",
+#             "formatter": "simple"
+#         },
+#         "file": {
+#             "class": "logging.handlers.RotatingFileHandler",
+#             "level": "INFO",
+#             "formatter": "simple",
+#             "filename": "app.log",
+#             "maxBytes": 10485760,
+#             "backupCount": 3
+#         }
+#     },
+#     "root": {
+#         "level": "DEBUG",
+#         "handlers": ["console", "file"]
+#     }
+# }
+
+from collections.abc import MutableMapping
+import json
 
 class LoggerFactory(object):
     __config = None
@@ -120,6 +149,17 @@ class LoggerFactory(object):
             except:
                 raise IOError
         return path
+
+    def get_logger_refactored(name, level="DEBUG", filename="app.log"):
+        """Get a logger with the specified name and level."""
+        import logging.config
+        import logging
+        config = json.loads(DEFAULT_LOGGER_CONFIG)
+        config["handlers"]["file"]["level"] = level
+        config["handlers"]["file"]["filename"] = filename
+        logging.config.dictConfig(config)
+        logger = logging.getLogger(name)
+        return logger
 
     def get_logger(self, name, level="DEBUG"):
         """Isn't it too wasful?"""

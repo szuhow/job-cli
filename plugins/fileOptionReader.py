@@ -6,7 +6,7 @@ class FileOptionReader(PluginManager):
     type = PluginType.OptionReader
 
     def register_signals(self):
-        self.logger.debug("%s registering as %s", self.name, self.type)
+        # self.logger.debug("%s registering as %s", self.name, self.type)
         return True
 
     def load_from_file(self, path, extension, options={}):
@@ -33,7 +33,7 @@ class FileOptionReader(PluginManager):
             location = join(path, "*.%s" % extension)
             files += glob(location)
 
-        self.job.logger.debug("Options found: %s", files)
+        # self.job.logger.debug("Options found: %s", files)
 
         for file in files:
             with open(file) as file_object:
