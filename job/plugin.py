@@ -33,7 +33,8 @@
 ##########################################################################
 
 from job.utils import ReadOnlyCacheAttrib, CachedMethod
-
+import logging
+from os import mkdir
 # In time we would probably make from it own big module, but for now it's
 # OK to leave it here, as I suppose. PluginType is just enumerator, then we should have
 # an abstract class for every type of it. Finally we have two classes responsible for
@@ -171,9 +172,39 @@ class PluginManager(object, metaclass=PluginRegister):
             self.log_level = self.kwargs["log_level"]
 
         from job.logger import LoggerFactory
-
-        self.logger = LoggerFactory().get_logger("PluginManager", level="INFO")  # FIXME
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.set_logger(level=self.log_level, filename=str(self.log_level) + ".log")
+        # self.logger = LoggerFactory().get_logger("PluginManager", level="INFO")  # FIXME
         super(PluginManager, self).__init__()
+
+    def set_logger(self, level="DEBUG", filename="app.log"):
+        """Set up basic logging configuration."""
+        from logging.handlers import RotatingFileHandler
+        from os.path import expanduser, join, isdir
+        self.logger.setLevel(level)
+        self.logger.propagate = False
+        # Create a console handler
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(level)
+
+        home = expanduser("~")
+        path = join(home, ".job")
+        if not isdir(path) and isdir(home):
+            mkdir(path)
+
+        path = join(path, filename)
+        # Create a file handler
+        file_handler = RotatingFileHandler(path)
+        file_handler.setLevel(level)
+
+        # Create a formatter and add it to the handlers
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        console_handler.setFormatter(formatter)
+        file_handler.setFormatter(formatter)
+
+        # Add the handlers to the logger
+        self.logger.addHandler(console_handler)
+        self.logger.addHandler(file_handler)
 
     @property
     def plugins(self):
@@ -217,7 +248,7 @@ class PluginManager(object, metaclass=PluginRegister):
                 # FIXME: this is workaround...
                 # plugin.logger = LoggerFactory().get_logger(name, level=self.log_level)
                 return plugin
-        self.logger.exception("Can't find plugin %s", name)
+        # self.logger.exception("Can't find plugin %s", name)
         raise OSError
 
     # @CachedMethod

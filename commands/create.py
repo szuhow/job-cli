@@ -35,7 +35,7 @@
 ##########################################################################
 
 from commands.base import BaseSubCommand
-
+import logging
 import argparse
 
 def setup_cli():
@@ -62,9 +62,6 @@ class CreateJobTemplate(BaseSubCommand):
 
     def __init__(self, cli_options, *args, **kwargs):
         super().__init__(cli_options, *args, **kwargs)
-        
-        # self.options.extend(cli_options)
-
 
     def create_job_asset_range(self, job_asset_name, number_mult=10, zeros=4):
         """Generates a list of asset names from asset name expression:
@@ -118,6 +115,7 @@ class CreateJobTemplate(BaseSubCommand):
         Params:
             project, type, asset, root: to pass to JobTemplate class.
         """
+        
         from copy import deepcopy
         from job.template import JobTemplate
         from os import environ
@@ -141,6 +139,7 @@ class CreateJobTemplate(BaseSubCommand):
             kwargs["job_asset_type"] = group
             for asset in asset_range:
                 kwargs["job_asset_name"] = asset
+                
                 job = JobTemplate(**kwargs)
 
                 # We need to reinitialize Job() to find local schemas:
@@ -153,7 +152,7 @@ class CreateJobTemplate(BaseSubCommand):
                 # We may want to create jobtemplate without executing it.
                 if not dry_run and not job.exists():
                     job.create()
-
+        # self.logger.warning("PO")
         return job
 
 
@@ -166,7 +165,9 @@ class CreateJobTemplate(BaseSubCommand):
         from job.plugin import PluginManager
         from os.path import join
         log_level = self.cli_options["log_level"] 
-        self.set_logger(level=log_level, filename=log_level + ".log")
+        # self.set_logger(level=log_level, filename=log_level + ".log")
+        # if not self.logger.handlers:
+        #     self.set_logger(level=log_level, filename=log_level + ".log")
        
         # self.logger = LoggerFactory().get_logger("CreateJobTemplate", level=log_level)
        
@@ -179,25 +180,28 @@ class CreateJobTemplate(BaseSubCommand):
         no_local = self.cli_options["no_local_schema"]
         root = self.cli_options["root"]
         sanitize = self.cli_options["sanitize"]
-
+       
         # Usual path without database pull.
         if not self.cli_options["fromdb"]:
             # Create root asset just in case (project/project/project)
             job = self.create_job(
                 project, project, project, root, no_local, log_lev, dry_run=True
             )
-
+            
             if not job.exists():
                 job.create()
                 if not no_local:
                     job.dump_local_templates()
             else:
+                #  get logger from base class
+                
                 self.logger.warning(
                     "Job already exists. Needs update? %s",
                     "/".join([project, project, project]),
                 )
-
+    
             # Proceed with assets if specified in cli (asset and type_ may contain range expressions)
+
             if type_ and asset:
                 job = self.create_job(project, type_, asset, root, no_local, log_lev)
 

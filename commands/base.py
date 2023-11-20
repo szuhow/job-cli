@@ -7,7 +7,7 @@ from os import mkdir
 class BaseSubCommand(object):
     """A base command."""
 
-    logger = None
+    # logger = None
 
     def __init__(self, cli_options, *args, **kwargs):
         # self.cli_options = cli_options
@@ -15,13 +15,17 @@ class BaseSubCommand(object):
         self.kwargs = kwargs
         self.cli_options = cli_options
         self.logger = logging.getLogger(self.__class__.__name__)
+       
+        self.set_logger()
+        # self.logger.set_logger(level=self.get_log_level_from_options(), filename="app.log")
+       
 
     def set_logger(self, level="DEBUG", filename="app.log"):
         """Set up basic logging configuration."""
-        
-        
-        self.logger.setLevel(level)
+       
 
+        self.logger.setLevel(level)
+        self.logger.propagate = False
         # Create a console handler
         console_handler = logging.StreamHandler()
         console_handler.setLevel(level)

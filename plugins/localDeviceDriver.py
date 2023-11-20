@@ -23,18 +23,19 @@ class LocalDevicePython(DeviceDriver, PluginManager):
         # get logger from PluginManager
         super().__init__()
 
-        
+        self.logger = logging.getLogger(self.__class__.__name__)
         # print(log_level)
         # self.set_logger(level=log_level, filename=str(log_level) + ".log")
         name = self.__class__
-
+        # print(name)
+        # print(f"LocalDevicePython {kwargs}")
         self.kwargs = kwargs    
         from job.logger import LoggerFactory
-        print(self.logger)
+        # print(self.logger)
         # if "log_level" in self.kwargs:
         #     self.log_level = self.kwargs["log_level"]
         name = self.__class__.__name__
-        self.logger = logging.getLogger(self.__class__.__name__)
+        # print(f"Log level {log_level}")
         self.set_logger(level=log_level, filename=str(log_level) + ".log")
        
         # self.logger = LoggerFactory().get_logger(name, level=log_level)
@@ -45,7 +46,7 @@ class LocalDevicePython(DeviceDriver, PluginManager):
         
         
         self.logger.setLevel(level)
-
+        self.logger.propagate = False
         # Create a console handler
         console_handler = logging.StreamHandler()
         console_handler.setLevel(level)
