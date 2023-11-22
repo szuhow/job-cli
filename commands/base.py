@@ -20,19 +20,20 @@ class BaseSubCommand(object):
         self.cli_options = cli_options
         self.logger = logging.getLogger(self.__class__.__name__)
         
-        # self.plg_manager = PluginManager()
-        # print("Plugin Manager: ", self.plg_manager.plugins)
-        # print cli_options
-        print("CLI Options: ", cli_options)
         # set options for ProjectManager from cli_options
-        project = {'project': cli_options['project'], 
-                   'episode': '$EP', 
-                   'group': 'user', 
-                   'asset': cli_options['asset']}
+        # project = {'project': cli_options['project'], 
+        #            'episode': '$EP', 
+        #            'group': 'user', 
+        #            'asset': cli_options['asset']}
         self.set_logger()
         # self.logger.set_logger(level=self.get_log_level_from_options(), filename="app.log")
-        self.manager = ProjectManager(project)
+        # self.manager = ProjectManager(project)
        
+
+    def set_manager(self, project):
+        """ """
+        self.manager = ProjectManager(project)
+
 
     def set_logger(self, level="DEBUG", filename="app.log"):
         """Set up basic logging configuration."""
