@@ -32,52 +32,24 @@
 #  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ##########################################################################
-"""Job - vol 2.1.0
 
-Usage:
-  job
-  job create PROJECT [TYPE ASSET] [--log-level=INFO --root=prefix --no-local-schema --fromdb --sanitize]
-  job set [PROJECT TYPE ASSET] [--rez=<rez-packages>...] [--log-level=INFO --root=prefix] [--refresh]
-  job archive PROJECT 
-  job read  PROJECT [TYPE ASSET] [FIELDS...] [--log-level=INFO]
-  job write PROJECT [TYPE ASSET] [FIELDS...] [--log-level=INFO]
-  job (-h | --help)
-  job samplecommand PROJECT
-  job --version
+import argparse
+import pkgutil
+from jobcli import commands
 
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers()
+    for loader, module_name, is_pkg in pkgutil.iter_modules(commands.__path__):
+        module = loader.find_module(module_name).load_module(module_name)
+        if hasattr(module, 'setup_cli'):
+            subparser = module.setup_cli()
+            command_parser = subparsers.add_parser(module_name, parents=[subparser], add_help=False)
 
-Options:
-                        No options -> "job set sandbox user $USER"
-  -h --help             Show this screen.
-  --version             Show version.
-  --log-level=<level>   Log level of subcommands (INFO | DEBUG) [default: INFO]
-  --no-local-schema     Disable savig/loading local copy of schema on 'create' 
-  --refresh             Ignore existing job context, and recreate it from scratch.
-  --sanitize            Convert external names (from Shotgun i.e.)
-  --root=<prefix>       Overrides root directory (for debuging) 
-"""
+    args = parser.parse_args()
+    args.command(args) 
 
 
-
-
-import sys
-from os.path import realpath, dirname, join
-
-# Get root directory
-job_root_path = dirname(realpath(__file__))
-job_root_path = dirname(job_root_path)
-sys.path = [job_root_path] + sys.path
-sys.path += [join(job_root_path, "external/docopt")]
-sys.path += [join(job_root_path, "external/schematics")]
-
-
-# Make sure we can import main module
-try:
-    import job
-    from docopt import docopt
-except ImportError as error:
-    print(error)
-    raise
 
 import unittest
 from tests.test_localDeviceDriver import TestLocalDevicePython
@@ -103,67 +75,3 @@ def run_tests():
 
 
 
-def get_sub_command(options):
-    """ Gets a command.module.Class which coresponds to docopt
-        subcommand (first argument).
-
-        Params:3
-            options - dictionary of command line options
-                      as returned by docopt.
-        Returns:
-            Class object from command.module (not initilized).
-
-        CLI setup based on https://stormpath.com/blog/
-        building-simple-cli-interfaces-in-python
-    """
-   
-    # sys.path.insert(0, '/Users/rafalszulinski/IdeaProjects/humandj/external_commands')
-    # import external_commands
-
-    import commands
-    from commands.base import BaseSubCommand
-    from inspect import getmembers, isclass
-    subcommand = None  
-    # print("Subclasses of BaseSubCommand: %s" % BaseSubCommand.__subclasses__())
-    
-
-    for k, v in options.items():
-        if not hasattr(commands, k) or not v:
-          continue
-        # add external_commands to the commands
-
-        module = getattr(commands, k) 
-        print("Module found %s with " % module)
-        candidates = [cls[1] for cls in getmembers(module, isclass)]
-        # We are only interested in classes derived from Base:
-        subcommand = [cls for cls in candidates if issubclass(cls, BaseSubCommand) and cls != BaseSubCommand][0]
-        print("Subcommand found %s" % subcommand)
-        return subcommand
-    return
-    
-def main():
-    """ Minimal entry point for job-cli environment. This calls sub command from
-        job-cli/commands directory from where work starts happening.
-    """
- 
-    from job.logger import LoggerFactory
-    cli_options = docopt(__doc__, version='job version 2.1.0')
-    print("CLI options: %s" % cli_options)
-    logger = LoggerFactory().get_logger("Job (main entry)", \
-        level=cli_options['--log-level'])
-
-    command = get_sub_command(cli_options)
-    print("Command found %s" % command)
-    logger.debug("Command found %s", command)
-    
-    if not command:
-        # This is temporary
-        print(__doc__)
-        return
-
-    command = command(cli_options)
-    command.run()
-
-if __name__ == "__main__":
-    # run_tests()
-    main()

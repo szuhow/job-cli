@@ -6,6 +6,4 @@
 # to be initialzed, so theroretically plugin refusing to initialize
 # won't break anyting.
 # import plugins
-import jobcli.external.schematics
-import jobcli.job.schema
 import jobcli.job

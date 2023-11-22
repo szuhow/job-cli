@@ -39,6 +39,7 @@ import logging
 import argparse
 import plugins
 import re
+from jobcli.job.plugin import PluginManager
 
 def asset_range(value):
     match = re.match(r'asset\[(\d+)-(\d+)\]', value)
@@ -53,10 +54,10 @@ def setup_cli():
     # parser.add_argument('type', nargs='?', default=None, help='Type of the project [optional]')
     parser.add_argument('asset', type=asset_range, help='Asset for the project in the alternative range format asset[x-y]')
     parser.add_argument('--log-level', default='INFO', help='Log level of subcommands (INFO | DEBUG) [default: INFO]')
-    parser.add_argument('--root', default='prefix', help='Overrides root directory (for debugging)')
-    parser.add_argument('--no-local-schema', action='store_true', help='Disable saving/loading local copy of schema on "create"')
+    # parser.add_argument('--root', default='prefix', help='Overrides root directory (for debugging)')
+    # parser.add_argument('--no-local-schema', action='store_true', help='Disable saving/loading local copy of schema on "create"')
     parser.add_argument('--fromdb', action='store_true')
-    parser.add_argument('--sanitize', action='store_true', help='Convert external names (from Shotgun i.e.)')
+    # parser.add_argument('--sanitize', action='store_true', help='Convert external names (from Shotgun i.e.)')
     parser.set_defaults(command=lambda args: CreateJobTemplate(cli_options=vars(args)).run())
     return parser
 
@@ -70,6 +71,7 @@ class CreateJobTemplate(BaseSubCommand):
     def __init__(self, cli_options, *args, **kwargs):
         from job.plugin import PluginManager
         self.plg_manager = PluginManager()
+        print("CreateJobTemplate", cli_options)
         super().__init__(cli_options, *args, **kwargs)
     
 
@@ -128,8 +130,8 @@ class CreateJobTemplate(BaseSubCommand):
         
         from copy import deepcopy
         from job.template import JobTemplate
-        from os import environ
-        from jobcli.job.plugin import PluginManager
+        # from os import environ
+        
         # Pack arguments so we can ommit None one (like root):
         # Should we standarize it with some class?
         # kwargs = {}
@@ -150,7 +152,7 @@ class CreateJobTemplate(BaseSubCommand):
         if not device:
             self.logger.exception("Can't find prefered device %s", prefered_devices_list)
             return        
-      
+        # print("Device", device)
         # Create root asset just in case (project/project/project)
         job_root_path = self.manager.get_job_root_path()
 
@@ -164,12 +166,13 @@ class CreateJobTemplate(BaseSubCommand):
     
 
         for path in targets:
-            device.make_dir(path)
-            # create_link(path, targets)
-            device.remove_write_permissions(path)
-            device.add_write_permissions(path, {'user': 'read', 'group': 'write'})
-            device.set_ownership(path)
-    
+            if not dry_run:
+                device.make_dir(path)
+                # create_link(path, targets)
+                device.remove_write_permissions(path)
+                device.add_write_permissions(path, {'user': 'read', 'group': 'write'})
+                device.set_ownership(path)
+        print("Done")
         
 
 
@@ -178,13 +181,16 @@ class CreateJobTemplate(BaseSubCommand):
         from copy import deepcopy
         import logging
         from jobcli.job.logger import LoggerFactory
-        from os.path import join
+        # from os.path import join
 
         # type_range = self.create_job_asset_range(type_, number_mult=1, zeros=2)
         # no_local = self.cli_options["no_local_schema"]
         # sanitize = self.cli_options["sanitize"]
       
         # # Usual path without database pull.
+        for cli_option in self.cli_options:
+            print(cli_option, self.cli_options[cli_option])
+
         if not self.cli_options["fromdb"]:
             asset = self.cli_options["asset"]
             asset_range = self.create_job_asset_range(asset)
@@ -198,6 +204,7 @@ class CreateJobTemplate(BaseSubCommand):
                     'group': 'user', 
                     'asset': asset}
                 self.create_job(project)
+            
 
         # else:
         #     # This is database path
