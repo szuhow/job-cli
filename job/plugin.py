@@ -32,7 +32,7 @@
 #
 ##########################################################################
 
-from job.utils import ReadOnlyCacheAttrib, CachedMethod
+from jobcli.job.utils import ReadOnlyCacheAttrib, CachedMethod
 import logging
 from os import mkdir
 # In time we would probably make from it own big module, but for now it's
@@ -157,7 +157,7 @@ class PluginManager(object, metaclass=PluginRegister):
     type = None
 
     def __init__(self, *args, **kwargs):
-        from job.utils import get_log_level_from_options
+        from jobcli.job.utils import get_log_level_from_options
         from logging import INFO, DEBUG
 
         self.args = args
@@ -171,9 +171,9 @@ class PluginManager(object, metaclass=PluginRegister):
         if "log_level" in self.kwargs:
             self.log_level = self.kwargs["log_level"]
 
-        from job.logger import LoggerFactory
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.set_logger(level=self.log_level, filename=str(self.log_level) + ".log")
+        from jobcli.job.logger import LoggerFactory
+        # self.logger = logging.getLogger(self.__class__.__name__)
+        # self.set_logger(level=self.log_level, filename=str(self.log_level) + ".log")
         # self.logger = LoggerFactory().get_logger("PluginManager", level="INFO")  # FIXME
         super(PluginManager, self).__init__()
 
@@ -260,7 +260,7 @@ class PluginManager(object, metaclass=PluginRegister):
         """
         from collections.abc import Iterable
         from job.logger import LoggerFactory
-
+      
         assert isinstance(prefered_plugin_names, Iterable)
         installed_plg_names = [plugin.name for plugin in self.plugins]
         for plugin_name in prefered_plugin_names:

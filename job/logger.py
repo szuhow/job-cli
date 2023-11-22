@@ -1,4 +1,4 @@
-from job.utils import ReadOnlyCacheAttrib
+from jobcli.job.utils import ReadOnlyCacheAttrib
 
 DEFAULT_LOGGER_CONFIG = """ {
     "version": 1,

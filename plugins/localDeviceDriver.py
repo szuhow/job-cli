@@ -20,25 +20,12 @@ class LocalDevicePython(DeviceDriver, PluginManager):
     logger = None
 
     def __init__(self, log_level = INFO, **kwargs):
-        # get logger from PluginManager
         super().__init__()
-
         self.logger = logging.getLogger(self.__class__.__name__)
-        # print(log_level)
-        # self.set_logger(level=log_level, filename=str(log_level) + ".log")
-        name = self.__class__
-        # print(name)
-        # print(f"LocalDevicePython {kwargs}")
         self.kwargs = kwargs    
-        from job.logger import LoggerFactory
-        # print(self.logger)
-        # if "log_level" in self.kwargs:
-        #     self.log_level = self.kwargs["log_level"]
         name = self.__class__.__name__
-        # print(f"Log level {log_level}")
         self.set_logger(level=log_level, filename=str(log_level) + ".log")
-       
-        # self.logger = LoggerFactory().get_logger(name, level=log_level)
+
 
 
     def set_logger(self, level="DEBUG", filename="app.log"):

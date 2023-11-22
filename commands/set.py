@@ -32,7 +32,7 @@
 #
 ##########################################################################
 
-from commands.base import BaseSubCommand
+from jobcli.commands.base import BaseSubCommand
 
 
 class NoJobEnvironmentBackend(Exception):

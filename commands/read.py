@@ -1,4 +1,4 @@
-from commands.base import BaseSubCommand
+from jobcli.commands.base import BaseSubCommand
 import argparse
 
 

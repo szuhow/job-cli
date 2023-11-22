@@ -35,7 +35,7 @@
 
 import argparse
 import pkgutil
-import commands
+from jobcli import commands
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

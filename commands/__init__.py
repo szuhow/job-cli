@@ -2,6 +2,8 @@ from .create import *
 from .set import *
 from .read import *
 from .write import *
+import jobcli
+
 # from .samplecommand import *
 
 #!/usr/bin/python

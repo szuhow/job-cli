@@ -7,7 +7,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 from os.path import expanduser, join, isdir
 from os import mkdir
-from demeter.project import ProjectManager
+from project import ProjectManager
 # This will actually install optional plugins
 # ... and crash on any error. We may hide it inside a class
 # and catch exception, log etc. This should not hurt us,
@@ -335,12 +335,14 @@ class JobTemplate(LocationTemplate):
         # We make it pluggable since prefs/options might be
         # imported from database
         from job.plugin import PluginManager
-        #################
-        self.manager = ProjectManager({'project': 'sandbox', 'episode': '$EP', 'group': 'user', 'asset': 'symek'})
+        ################# DEMETER HERE
+        # self.manager = ProjectManager({'project': 'sandbox', 'episode': '$EP', 'group': 'user', 'asset': 'symek'})
+        print(f"Kwargs: {kwargs}")
+        self.manager = ProjectManager(kwargs)
         self.manager.dry_load(str(self.manager.project))
         #################
         self.plg_manager = PluginManager(log_level=log_level)
-
+        # print(f"Plugin Manager: {self.plg_manager.plugins}")
         self.job_options_reader = self.plg_manager.get_plugin_by_name(
             "FileOptionReader"
         )
