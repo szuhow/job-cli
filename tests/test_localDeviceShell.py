@@ -10,7 +10,7 @@ sys.path = [job_root_path] + sys.path
 sys.path += [os.path.join(job_root_path, "plugins")]
 
 
-class LocalDeviceShellTest(unittest.TestCase):
+class TestLocalDeviceShell(unittest.TestCase):
     def setUp(self):
         from job.plugin import PluginManager 
         self.root = tempfile.mkdtemp()
