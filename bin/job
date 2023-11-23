@@ -36,26 +36,10 @@
 import argparse
 import pkgutil
 from jobcli import commands
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers()
-    for loader, module_name, is_pkg in pkgutil.iter_modules(commands.__path__):
-        module = loader.find_module(module_name).load_module(module_name)
-        if hasattr(module, 'setup_cli'):
-            subparser = module.setup_cli()
-            command_parser = subparsers.add_parser(module_name, parents=[subparser], add_help=False)
-
-    args = parser.parse_args()
-    args.command(args) 
-
-
-
 import unittest
 from tests.test_localDeviceDriver import TestLocalDevicePython
-from tests.test_set import TestJobEnvironment
 def run_tests():
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestJobEnvironment)
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestLocalDevicePython)
     runner = unittest.TextTestRunner()
     results = runner.run(suite)
 
@@ -75,3 +59,14 @@ def run_tests():
 
 
 
+if __name__ == '__main__':
+  
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers()
+    for loader, module_name, is_pkg in pkgutil.iter_modules(commands.__path__):
+        module = loader.find_module(module_name).load_module(module_name)
+        if hasattr(module, 'setup_cli'):
+            subparser = module.setup_cli()
+            command_parser = subparsers.add_parser(module_name, parents=[subparser], add_help=False)
+    args = parser.parse_args()
+    args.command(args) 

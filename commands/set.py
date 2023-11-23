@@ -33,6 +33,17 @@
 ##########################################################################
 
 from jobcli.commands.base import BaseSubCommand
+import argparse
+
+def setup_cli():
+    parser = argparse.ArgumentParser(description='Set environment for a job project')
+    parser.add_argument('project', default=None, help='Project name')
+    # parser.add_argument('type', nargs='?', default=None, help='Type of the project [optional]')
+    # parser.add_argument('--root', default='prefix', help='Overrides root directory (for debugging)')
+    # parser.add_argument('--no-local-schema', action='store_true', help='Disable saving/loading local copy of schema on "create"')
+    # parser.add_argument('--sanitize', action='store_true', help='Convert external names (from Shotgun i.e.)')
+    parser.set_defaults(command=lambda args: SetEnvironment(cli_options=vars(args)).run())
+    return parser
 
 
 class NoJobEnvironmentBackend(Exception):
@@ -66,7 +77,7 @@ class JobEnvironment(object):
         import plugins
 
         self.log_level = log_level
-        self.logger = LoggerFactory().get_logger("JobEnvironment", level=log_level)
+        # self.logger = LoggerFactory().get_logger("JobEnvironment", level=log_level)
         self.plg_manager = PluginManager(log_level=log_level)
         self.package_path = join(expanduser("~"), ".job")
 

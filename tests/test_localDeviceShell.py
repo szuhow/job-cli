@@ -7,8 +7,6 @@ from logging import INFO
 job_root_path = os.path.dirname(os.path.realpath(__file__))
 job_root_path = os.path.dirname(job_root_path)
 sys.path = [job_root_path] + sys.path
-sys.path += [os.path.join(job_root_path, "external/docopt")]
-sys.path += [os.path.join(job_root_path, "external/schematics")]
 sys.path += [os.path.join(job_root_path, "plugins")]
 
 
@@ -16,7 +14,7 @@ class LocalDeviceShellTest(unittest.TestCase):
     def setUp(self):
         from job.plugin import PluginManager 
         self.root = tempfile.mkdtemp()
-        from localDeviceDriver import LocalDeviceShell
+        from plugins.localDeviceDriver import LocalDeviceShell
         self.device = LocalDeviceShell()
 
     def test_is_dir(self):
