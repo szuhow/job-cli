@@ -11,7 +11,7 @@ from logging.handlers import RotatingFileHandler
 from os.path import expanduser, join, isdir
 from os import mkdir
 # TODO: remove
-USE_SUDO = False
+USE_SUDO = True
 
 
 class LocalDevicePython(DeviceDriver, PluginManager):
@@ -147,7 +147,7 @@ class LocalDevicePython(DeviceDriver, PluginManager):
             self.logger.exception("Can't remove write permission from %s", path)
             raise OSError
 
-        self.logger.debug(
+        self.logger.info(  
             "remove_write_permissions: %s (%s)", path, current_permissions & NO_WRITING
         )
 
@@ -170,10 +170,10 @@ class LocalDevicePython(DeviceDriver, PluginManager):
         try:
             os.chmod(path, current_permissions | WRITING)
         except:
-            self.logger.exception("Can't add write permission for %s", path)
-            raise OSError
+            self.logger.error("Can't add write permission for %s", path)
+            # raise OSError
 
-        self.logger.debug(
+        self.logger.info(
             "add_write_permissions: %s (%s)", path, current_permissions | WRITING
         )
 
@@ -192,9 +192,9 @@ class LocalDevicePython(DeviceDriver, PluginManager):
                 return os.stat(path).st_uid
             try:
                 return getpwnam(user).pw_uid
-            except:
-                self.logger.exception("Can't find specified user %s", user)
-                raise OSError
+            except OSError as e:
+                self.logger.error("Can't find specified user %s", user)
+                # raise OSError
 
         def get_group_id(path, group):
             """"""
@@ -202,9 +202,9 @@ class LocalDevicePython(DeviceDriver, PluginManager):
                 return os.stat(path).st_gid
             try:
                 return getgrnam(group).gr_gid
-            except:
-                self.logger.exception("Can't find specified group %s", group)
-                raise OSError
+            except OSError as e:
+                self.logger.error("Can't find specified group %s", group)
+                # raise OSError
 
         # This may happen due to 'upper' logic...
         if not user and not group:
@@ -214,10 +214,11 @@ class LocalDevicePython(DeviceDriver, PluginManager):
         gid = get_group_id(path, group)
         #
         try:
+            
             os.chown(path, uid, gid)
-        except:
-            self.logger.exception("Can't change ownership for %s", path)
-            raise OSError
+        except OSError as e:
+            self.logger.error("Can't change ownership for %s: %s", path, str(e))
+            # raise
 
         self.logger.debug("set_ownership: %s (%s, %s)", path, uid, gid)
         return True
@@ -234,10 +235,39 @@ class LocalDeviceShell(DeviceDriver, PluginManager):
 
     def __init__(self, log_level=INFO, **kwargs):
         name = self.__class__
-        from job.logger import LoggerFactory
+       
 
         name = self.__class__.__name__
-        self.logger = LoggerFactory().get_logger(name, level=log_level)
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.set_logger(level=log_level, filename=str(log_level) + ".log")
+
+    def set_logger(self, level="DEBUG", filename="app.log"):
+        """Set up basic logging configuration."""
+
+        self.logger.setLevel(level)
+        self.logger.propagate = False
+        # Create a console handler
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(level)
+
+        home = expanduser("~")
+        path = join(home, ".job")
+        if not isdir(path) and isdir(home):
+            mkdir(path)
+
+        path = join(path, filename)
+        # Create a file handler
+        file_handler = RotatingFileHandler(path)
+        file_handler.setLevel(level)
+
+        # Create a formatter and add it to the handlers
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        console_handler.setFormatter(formatter)
+        file_handler.setFormatter(formatter)
+
+        # Add the handlers to the logger
+        self.logger.addHandler(console_handler)
+        self.logger.addHandler(file_handler)
 
     def register_signals(self):
         return True
@@ -265,7 +295,7 @@ class LocalDeviceShell(DeviceDriver, PluginManager):
                 command, shell=False, stdout=PIPE, stderr=PIPE
             ).communicate()
             if not err:
-                self.logger.debug("Making %s", path)
+                self.logger.info("Making %s", path)
                 return True
             else:
                 # print(err)
