@@ -38,10 +38,10 @@ import pkgutil
 from jobcli import commands
 import unittest
 from tests.test_localDevicePython import TestLocalDevicePython
-from tests.test_localDeviceShell import TestLocalDevicePython
+from tests.test_localDeviceShell import TestLocalDeviceShell
 def run_tests():
     suite = unittest.TestLoader().loadTestsFromTestCase(TestLocalDevicePython)
-    
+
     runner = unittest.TextTestRunner()
     results = runner.run(suite)
 

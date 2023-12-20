@@ -152,7 +152,7 @@ class CreateJobTemplate(BaseSubCommand):
         if not device:
             self.logger.exception("Can't find prefered device %s", prefered_devices_list)
             return        
-        # print("Device", device)
+        print("Device", device)
         # Create root asset just in case (project/project/project)
         job_root_path = self.manager.get_job_root_path()
 

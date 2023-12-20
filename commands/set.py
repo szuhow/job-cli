@@ -38,8 +38,10 @@ import argparse
 def setup_cli():
     parser = argparse.ArgumentParser(description='Set environment for a job project')
     parser.add_argument('project', default=None, help='Project name')
+    parser.add_argument('type', default=None, help='Type of the project [optional]')
+    parser.add_argument('asset', default=None, help='Asset for the project')
     # parser.add_argument('type', nargs='?', default=None, help='Type of the project [optional]')
-    # parser.add_argument('--root', default='prefix', help='Overrides root directory (for debugging)')
+    parser.add_argument('--root', default='prefix', help='Overrides root directory (for debugging)')
     # parser.add_argument('--no-local-schema', action='store_true', help='Disable saving/loading local copy of schema on "create"')
     # parser.add_argument('--sanitize', action='store_true', help='Convert external names (from Shotgun i.e.)')
     parser.set_defaults(command=lambda args: SetEnvironment(cli_options=vars(args)).run())
@@ -78,7 +80,7 @@ class JobEnvironment(object):
 
         self.log_level = log_level
         # self.logger = LoggerFactory().get_logger("JobEnvironment", level=log_level)
-        self.plg_manager = PluginManager(log_level=log_level)
+        self.plg_manager = PluginManager()
         self.package_path = join(expanduser("~"), ".job")
 
         if not isdir(self.package_path):
@@ -109,12 +111,12 @@ class JobEnvironment(object):
 
         self.cli_options = cli_options
         print("CLI options: %s" % self.cli_options)
-        self.job_current = self.cli_options["PROJECT"]
-        self.job_asset_type = self.cli_options["TYPE"]
-        self.job_asset_name = self.cli_options["ASSET"]
+        self.job_current = self.cli_options["project"]
+        self.job_asset_type = self.cli_options["type"]
+        self.job_asset_name = self.cli_options["asset"]
 
-        if self.cli_options["--root"]:
-            self.root = self.cli_options["--root"]
+        if self.cli_options["root"]:
+            self.root = self.cli_options["root"]
         else:
             self.root = None
 
@@ -251,17 +253,17 @@ class SetEnvironment(BaseSubCommand):
         """Entry point for sub command."""
         from os.path import join, isdir, expanduser
         from getpass import getuser
-        from job.logger import LoggerFactory
+        # from job.logger import LoggerFactory
 
-        log_level = self.cli_options["--log-level"]
-        self.logger = LoggerFactory().get_logger("SetEnvironment", level=log_level)
-        job = JobEnvironment(log_level=log_level)
+        # log_level = self.cli_options["--log-level"]
+        # self.logger = LoggerFactory().get_logger("SetEnvironment", level=log_level)
+        job = JobEnvironment()
 
         # Lack of PROJECT or ASSET specification triggers reading history file
         if None in (
-            self.cli_options["PROJECT"],
-            self.cli_options["TYPE"],
-            self.cli_options["ASSET"],
+            self.cli_options["project"],
+            self.cli_options["type"],
+            self.cli_options["asset"],
         ):
             # Can't deal with both missing args and refreshing...
             if self.cli_options["--refresh"]:
@@ -282,9 +284,9 @@ class SetEnvironment(BaseSubCommand):
                 self.logger.warning(
                     "To avoid this behavior, try: job set PROJECT TYPE ASSET --refresh"
                 )
-                self.cli_options["PROJECT"] = "sandbox"
-                self.cli_options["TYPE"] = "user"
-                self.cli_options["ASSET"] = getuser()
+                self.cli_options["project"] = "sandbox"
+                self.cli_options["type"] = "user"
+                self.cli_options["asset"] = getuser()
 
         # Postponed initialization:
         job.init(self.cli_options)
