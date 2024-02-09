@@ -41,7 +41,7 @@ def setup_cli():
     parser.add_argument('type', default=None, help='Type of the project [optional]')
     parser.add_argument('asset', default=None, help='Asset for the project')
     # parser.add_argument('type', nargs='?', default=None, help='Type of the project [optional]')
-    parser.add_argument('--root', default='prefix', help='Overrides root directory (for debugging)')
+    parser.add_argument('--root', default='/tmp/test', help='Overrides root directory (for debugging)')
     # parser.add_argument('--no-local-schema', action='store_true', help='Disable saving/loading local copy of schema on "create"')
     # parser.add_argument('--sanitize', action='store_true', help='Convert external names (from Shotgun i.e.)')
     parser.set_defaults(command=lambda args: SetEnvironment(cli_options=vars(args)).run())
@@ -88,15 +88,15 @@ class JobEnvironment(object):
             mkdir(self.package_path)
 
         # TODO: Make it configurable
-        environ_plugin_name = "RezEnvironment"
-        self.backend = self.plg_manager.get_plugin_by_name(environ_plugin_name)
+        # environ_plugin_name = "RezEnvironment"
+        # self.backend = self.plg_manager.get_plugin_by_name(environ_plugin_name)
 
         # This is in case, we will be asking for plugin type rather then by name,
         # so plugin manager might not catch missing one.
-        if not self.backend:
-            message = "Can't operate without environment backend %s"
-            self.logger.exception(message, environ_plugin_name)
-            raise NoJobEnvironmentBackend(message % environ_plugin_name)
+        # if not self.backend:
+        #     message = "Can't operate without environment backend %s"
+        #     self.logger.exception(message, environ_plugin_name)
+        #     raise NoJobEnvironmentBackend(message % environ_plugin_name)
 
         if cli_options:
             self.init(cli_options)
@@ -120,11 +120,11 @@ class JobEnvironment(object):
         else:
             self.root = None
 
-        self.job_template = self.__create_job_template()
-        self.job_path = self.job_template.expand_path_template()
+        # self.job_template = self.__create_job_template()
+        # self.job_path = self.job_template.expand_path_template()
 
-        # Bind (init) job context tp the job_template:
-        self.backend(self.job_template)
+        # # Bind (init) job context tp the job_template:
+        # self.backend(self.job_template)
 
         if not history or not self.job_current:
             return
@@ -133,11 +133,11 @@ class JobEnvironment(object):
         history_folder = join(self.package_path, self.job_current)
         if not isdir(history_folder):
             mkdir(history_folder)
-
-        with open(join(history_folder, "job.history"), "w") as file:
-            file.write(dumps(self.cli_options))
-        with open(join(self.package_path, "job.history"), "w") as file:
-            file.write(dumps(self.cli_options))
+        # Temporary disabled:
+        # with open(join(history_folder, "job.history"), "w") as file:
+        #     file.write(dumps(self.cli_options))
+        # with open(join(self.package_path, "job.history"), "w") as file:
+        #     file.write(dumps(self.cli_options))
 
     def find_job_context(self, job_template=None):
         """Using underlying context creator find if current
@@ -292,38 +292,38 @@ class SetEnvironment(BaseSubCommand):
         job.init(self.cli_options)
 
         # Lets check if we can find project in a first place...
-        project_path = job.job_template.expand_path_template()
-        local_templ = job.job_template.get_local_schema_path(template="job")
-        if not isdir(project_path) or not isdir(local_templ):
-            self.logger.warning("Can't find project %s. Exiting now.", project_path)
-            return
+        # project_path = job.job_template.expand_path_template()
+        # local_templ = job.job_template.get_local_schema_path(template="job")
+        # if not isdir(project_path) or not isdir(local_templ):
+        #     self.logger.warning("Can't find project %s. Exiting now.", project_path)
+        #     return
 
         # Read additional packages from command line:
-        rez_package_names = []
-        if self.cli_options["--rez"]:
-            rez_package_names += self.cli_options["--rez"]
+        # rez_package_names = []
+        # if self.cli_options["--rez"]:
+        #     rez_package_names += self.cli_options["--rez"]
 
-        # ...some might be also added in job.options:
-        if "--rez" in job.job_template.job_options:
-            rez_package_names += job.job_template.job_options["--rez"]
+        # # ...some might be also added in job.options:
+        # if "--rez" in job.job_template.job_options:
+        #     rez_package_names += job.job_template.job_options["--rez"]
 
-        ok = job.find_job_context()
+        # ok = job.find_job_context()
 
         # Either this is first set to this asset or we want to refresh its definition:
-        if not ok or self.cli_options["--refresh"]:
-            context_name, package_name, package_version = job.backend.context_name()
-            self.logger.warning("Not package %s found... creating it.", package_name)
-            ok = job.backend.create_context(
-                requires=rez_package_names, custom={"test": "test"}
-            )
+        # if not ok or self.cli_options["--refresh"]:
+        #     context_name, package_name, package_version = job.backend.context_name()
+        #     self.logger.warning("Not package %s found... creating it.", package_name)
+        #     ok = job.backend.create_context(
+        #         requires=rez_package_names, custom={"test": "test"}
+        #     )
 
-        if ok:
-            try:
-                job.create_user_dirs()
-                job.backend.execute_context(rez_package_names)
-            except Exception as e:
-                self.logger.exception("Can't set to the job context, ", e)
-                raise SetCommandNotSuccessful(e)
+        # if ok:
+        #     try:
+        #         job.create_user_dirs()
+        #         job.backend.execute_context(rez_package_names)
+        #     except Exception as e:
+        #         self.logger.exception("Can't set to the job context, ", e)
+        #         raise SetCommandNotSuccessful(e)
 
-        else:
-            self.logger.info("Can't set to job. Exiting.")
+        # else:
+        #     self.logger.info("Can't set to job. Exiting.")
